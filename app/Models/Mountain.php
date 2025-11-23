@@ -18,6 +18,9 @@ class Mountain extends Model
         'name',
         'slug',
         'location',
+        'difficulty_level',
+        'status',
+        'elevation',
     ];
 
     public function hikes()
