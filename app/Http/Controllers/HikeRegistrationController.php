@@ -27,7 +27,7 @@ class HikeRegistrationController extends Controller
         // Ambil data gunung yang statusnya 'open' saja
         $mountains = Mountain::where('status', 'open')->get();
 
-        return Inertia::render('Hike/Register', [
+        return Inertia::render('hike/Register', [
             'mountains' => $mountains,
             // Kirim data user untuk auto-fill form (opsional, karena Inertia sudah punya auth.user)
         ]);

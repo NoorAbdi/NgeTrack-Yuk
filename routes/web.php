@@ -3,9 +3,10 @@
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
-use App\Http\Controllers\Admin\CheckpointController;
+use App\Http\Controllers\Admin\CheckpointController as AdminCheckpointController;
 use App\Http\Controllers\Settings\ProfileController; 
 use App\Http\Controllers\HikeRegistrationController;
+use App\Http\Controllers\CheckpointController as PublicCheckpointController;
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
@@ -26,8 +27,10 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::get('/register-hike', [HikeRegistrationController::class, 'create'])->name('hike.create');
     Route::post('/register-hike', [HikeRegistrationController::class, 'store'])->name('hike.store');
+    Route::get('/checkpoint/{slug}', [PublicCheckpointController::class, 'show'])->name('checkpoint.show');
+    Route::post('/checkpoint/scan', [PublicCheckpointController::class, 'store'])->name('checkpoint.store');
 });
 
 Route::middleware(['auth', 'is_admin'])->prefix('admin')->name('admin.')->group(function () {
-    Route::resource('checkpoints', CheckpointController::class);
+    Route::resource('checkpoints', AdminCheckpointController::class);
 });
