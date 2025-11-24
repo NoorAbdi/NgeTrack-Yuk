@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { FormEventHandler } from 'react';
 import { BreadcrumbItem } from '@/types';
+import { QrCode } from 'lucide-react';
 
 interface Checkpoint {
     id: number;
@@ -26,57 +27,91 @@ export default function Scan({ checkpoint }: { checkpoint: Checkpoint }) {
     };
 
     const breadcrumbs: BreadcrumbItem[] = [
-        { title: 'Checkpoint Scan', href: '#' },
+        { title: 'Scan Checkpoint', href: '#' },
     ];
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={`Scan: ${checkpoint.name}`} />
 
-            <div className="min-h-screen flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gray-50 dark:bg-neutral-900">
-                <div className="max-w-md w-full space-y-8 bg-white dark:bg-neutral-800 p-8 rounded-xl shadow-lg border border-gray-200 dark:border-neutral-700">
+            {/* Container utama dibuat flex agar konten berada di tengah layar HP */}
+            <div className="flex min-h-[80vh] flex-col items-center justify-center p-4 bg-background">
+                
+                <div className="w-full max-w-sm space-y-8 text-center">
                     
-                    <div className="text-center">
-                        <h2 className="mt-2 text-3xl font-extrabold text-gray-900 dark:text-white">
-                            {checkpoint.name}
-                        </h2>
-                        <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-                            Please enter your Hike ID to check-in.
-                        </p>
+                    {/* Header: Nama Pos & Ikon */}
+                    <div className="flex flex-col items-center space-y-4">
+                        <div className="p-4 bg-blue-100 dark:bg-blue-900/30 rounded-full">
+                            <QrCode className="w-12 h-12 text-blue-600 dark:text-blue-400" />
+                        </div>
+                        
+                        <div className="space-y-2">
+                            <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+                                {checkpoint.name}
+                            </h2>
+                            <p className="text-sm text-muted-foreground">
+                                Welcome, Hiker! Please check in below.
+                            </p>
+                        </div>
                     </div>
 
-                    <form className="mt-8 space-y-6" onSubmit={submit}>
-                        <div className="rounded-md shadow-sm -space-y-px">
-                            <div className="mb-4">
-                                <Label htmlFor="hike_id" className="sr-only">
-                                    Hike Registration ID
-                                </Label>
-                                <Input
-                                    id="hike_id"
-                                    name="hike_id"
-                                    type="text"
-                                    required
-                                    className="text-center text-lg tracking-widest uppercase"
-                                    placeholder="H-2025XXXX-XXX"
-                                    value={data.hike_registration_id}
-                                    onChange={(e) => setData('hike_registration_id', e.target.value.toUpperCase())}
-                                />
-                                {errors.hike_registration_id && (
-                                    <p className="text-red-500 text-xs mt-1 text-center">{errors.hike_registration_id}</p>
-                                )}
-                            </div>
+                    {/* Form Input */}
+                    <form onSubmit={submit} className="space-y-6">
+                        
+                        <div className="space-y-2">
+                            <Label htmlFor="hike_id" className="sr-only">
+                                Hike Registration ID
+                            </Label>
+                            
+                            {/* Input dioptimalkan untuk mobile:
+                                1. text-center & tracking-widest: Agar mudah dibaca
+                                2. text-lg & py-6: Ukuran font & padding lebih besar untuk jari
+                                3. autoCapitalize: Agar keyboard otomatis huruf besar
+                                4. inputMode: Mengoptimalkan keyboard virtual
+                            */}
+                            <Input
+                                id="hike_id"
+                                name="hike_id"
+                                type="text"
+                                required
+                                autoCapitalize="characters"
+                                autoComplete="off"
+                                autoCorrect="off"
+                                spellCheck="false"
+                                className="text-center text-2xl font-mono tracking-[0.2em] uppercase h-14 border-2 focus-visible:ring-offset-2"
+                                placeholder="H-2025..."
+                                value={data.hike_registration_id}
+                                onChange={(e) => setData('hike_registration_id', e.target.value.toUpperCase())}
+                            />
+                            
+                            {errors.hike_registration_id && (
+                                <p className="text-sm font-medium text-destructive animate-pulse">
+                                    {errors.hike_registration_id}
+                                </p>
+                            )}
                         </div>
 
-                        <div>
-                            <Button
-                                type="submit"
-                                disabled={processing}
-                                className="w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                            >
-                                {processing ? 'Processing...' : 'Check In Now'}
-                            </Button>
-                        </div>
+                        <Button
+                            type="submit"
+                            disabled={processing}
+                            size="lg"
+                            className="w-full text-base font-semibold h-12 shadow-md transition-all active:scale-95"
+                        >
+                            {processing ? (
+                                <span className="flex items-center gap-2">
+                                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                                    Logging...
+                                </span>
+                            ) : (
+                                'Confirm Check-In'
+                            )}
+                        </Button>
                     </form>
+
+                    {/* Footer Bantuan Kecil */}
+                    <p className="text-xs text-muted-foreground">
+                        Having trouble? Contact the basecamp officer.
+                    </p>
                 </div>
             </div>
         </AppLayout>
