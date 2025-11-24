@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\CheckpointController as AdminCheckpointController
 use App\Http\Controllers\Settings\ProfileController; 
 use App\Http\Controllers\HikeRegistrationController;
 use App\Http\Controllers\CheckpointController as PublicCheckpointController;
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
@@ -32,5 +33,6 @@ Route::middleware('auth')->group(function () {
 });
 
 Route::middleware(['auth', 'is_admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
     Route::resource('checkpoints', AdminCheckpointController::class);
 });
