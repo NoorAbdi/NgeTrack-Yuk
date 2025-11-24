@@ -25,6 +25,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             MountainSeeder::class,
             CheckpointSeeder::class,
+            BadgeSeeder::class,
         ]);
     }
 }

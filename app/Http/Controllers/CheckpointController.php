@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Checkpoint;
 use App\Models\CheckpointLog;
 use App\Models\Hike;
+use App\Services\GamificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
 use Inertia\Inertia;
@@ -72,7 +73,8 @@ class CheckpointController extends Controller
                 'status' => 'completed',
                 'completed_at' => now()
             ]);
-            return Redirect::route('home')->with('success', 'Hiking completed! Welcome back.');
+            $gamificationService->checkAndAwardBadges($hike);
+            return Redirect::route('dashboard')->with('success', 'Hiking completed! Badge unlocked check your profile.');
         }
 
         return back()->with('success', "Check-in successful at {$currentCheckpoint->name} ({$direction})!");
