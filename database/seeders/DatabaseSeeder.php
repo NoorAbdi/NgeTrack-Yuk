@@ -18,7 +18,7 @@ class DatabaseSeeder extends Seeder
         User::factory()->create([
             'name' => 'Admin',
             'email' => 'admin@ngetrack.com',
-            'password' => Hash::make('FreakyDiamond$21'),
+            'password' => Hash::make('admintracking$21'),
             'role' => 'admin',
         ]);
 
