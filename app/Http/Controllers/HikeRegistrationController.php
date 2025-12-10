@@ -24,6 +24,7 @@ class HikeRegistrationController extends Controller
      */
     public function create()
     {
+        // Pastikan nama folder 'hike' dan file 'Register' sesuai dengan yang ada di resources/js/pages/
         $mountains = Mountain::where('status', 'open')->get();
 
         return Inertia::render('hike/Register', [
@@ -55,6 +56,9 @@ class HikeRegistrationController extends Controller
             'terms_accepted_at' => now(),
         ]);
 
-        return Redirect::route('dashboard')->with('success', 'Registration Successful! Your Hike ID is: ' . $registrationId);
+        return Redirect::route('dashboard')->with([
+            'success' => 'Registration Successful!',
+            'new_hike_id' => $registrationId, 
+        ]);
     }
 }

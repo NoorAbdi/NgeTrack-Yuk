@@ -13,9 +13,10 @@ return new class extends Migration
     {
         Schema::create('badges', function (Blueprint $table) {
             $table->id();
-            $table->string('name'); // 'First Hiking'
+            $table->string('name'); 
+            $table->string('slug')->unique();
             $table->text('description')->nullable();
-            $table->string('icon_url')->nullable(); // Path to badge image
+            $table->string('icon')->nullable();
             $table->timestamps();
         });
     }

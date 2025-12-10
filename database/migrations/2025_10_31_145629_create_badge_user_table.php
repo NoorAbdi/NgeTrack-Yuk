@@ -18,6 +18,7 @@ return new class extends Migration
             $table->foreignId('badge_id')->constrained()->onDelete('cascade');
             $table->foreignId('hike_id')->nullable()->constrained()->onDelete('set null'); // Optional: This badge is earned from which hiking.
             $table->timestamp('unlocked_at')->default(DB::raw('CURRENT_TIMESTAMP'));
+            $table->timestamps();
             $table->unique(['user_id', 'badge_id']); // Ensure that 1 user can only get 1 of the same badge
         });
     }

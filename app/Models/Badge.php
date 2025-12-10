@@ -16,8 +16,9 @@ class Badge extends Model
      */
     protected $fillable = [
         'name',
+        'slug',
         'description',
-        'icon_url',
+        'icon',
     ];
 
     // -----------------------------------------------------------------

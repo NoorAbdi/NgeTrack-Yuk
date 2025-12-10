@@ -28,7 +28,8 @@ class CheckpointController extends Controller
     /**
      * Memproses data scan dan mencatat log.
      */
-    public function store(Request $request)
+    // PERBAIKAN DI SINI: Menambahkan GamificationService ke dalam parameter
+    public function store(Request $request, GamificationService $gamificationService)
     {
         $request->validate([
             'hike_registration_id' => 'required|exists:hikes,hike_registration_id',
@@ -73,7 +74,10 @@ class CheckpointController extends Controller
                 'status' => 'completed',
                 'completed_at' => now()
             ]);
+            
+            // Sekarang variabel ini sudah dikenali lewat injection di atas
             $gamificationService->checkAndAwardBadges($hike);
+            
             return Redirect::route('dashboard')->with('success', 'Hiking completed! Badge unlocked check your profile.');
         }
 

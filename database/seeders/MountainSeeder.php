@@ -16,7 +16,7 @@ class MountainSeeder extends Seeder
         DB::table('mountains')->delete();
         
         Mountain::create([
-            'name' => 'Gunung Papandayan',
+            'name' => 'Papandayan Mountain',
             'slug' => 'papandayan',
             'location' => 'Garut, Jawa Barat'
         ]);

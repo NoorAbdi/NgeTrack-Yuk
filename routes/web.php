@@ -7,6 +7,7 @@ use App\Http\Controllers\HikeRegistrationController;
 use App\Http\Controllers\Admin\CheckpointController as AdminCheckpointController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\CheckpointController as PublicCheckpointController;
+use App\Http\Controllers\HikerDashboardController;
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
@@ -17,9 +18,9 @@ Route::get('/', function () {
     ]);
 })->name('home');
 
-Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard', [HikerDashboardController::class, 'index'])
+    ->middleware(['auth', 'verified'])
+    ->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::get('/register-hike', [HikeRegistrationController::class, 'create'])->name('hike.create');

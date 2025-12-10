@@ -47,10 +47,10 @@ export default function Index({ auth, checkpoints, flash }) {
     return (
         <AuthenticatedLayout
             breadcrumbs={[
-                { title: 'Kelola Checkpoints', href: '/admin/checkpoints' },
+                { title: 'Manage checkpoints', href: '/admin/checkpoints' },
             ]}
         >
-            <Head title="Kelola Checkpoints" />
+            <Head title="Manage checkpoints" />
 
             <div className="py-12">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
