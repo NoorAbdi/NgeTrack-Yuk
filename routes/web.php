@@ -1,0 +1,37 @@
+<?php
+
+use Illuminate\Foundation\Application;
+use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
+use App\Http\Controllers\HikeRegistrationController;
+use App\Http\Controllers\Admin\CheckpointController as AdminCheckpointController;
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\CheckpointController as PublicCheckpointController;
+use App\Http\Controllers\HikerDashboardController;
+
+Route::get('/', function () {
+    return Inertia::render('Welcome', [
+        'canLogin' => Route::has('login'),
+        'canRegister' => Route::has('register'),
+        'laravelVersion' => Application::VERSION,
+        'phpVersion' => PHP_VERSION,
+    ]);
+})->name('home');
+
+Route::get('/dashboard', [HikerDashboardController::class, 'index'])
+    ->middleware(['auth', 'verified'])
+    ->name('dashboard');
+
+Route::middleware('auth')->group(function () {
+    Route::get('/register-hike', [HikeRegistrationController::class, 'create'])->name('hike.create');
+    Route::post('/register-hike', [HikeRegistrationController::class, 'store'])->name('hike.store');
+    Route::get('/checkpoint/{slug}', [PublicCheckpointController::class, 'show'])->name('checkpoint.show');
+    Route::post('/checkpoint/scan', [PublicCheckpointController::class, 'store'])->name('checkpoint.store');
+});
+
+Route::middleware(['auth', 'is_admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+    Route::resource('checkpoints', AdminCheckpointController::class);
+});
+
+require __DIR__.'/settings.php'; 
