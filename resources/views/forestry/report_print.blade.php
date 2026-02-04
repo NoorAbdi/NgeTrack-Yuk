@@ -23,7 +23,7 @@
 </head>
 <body>
     <button class="no-print" onclick="window.print()" style="padding: 10px 20px; background: #333; color: white; cursor: pointer; margin-bottom: 20px;">
-        🖨️ Print / Save as PDF
+        Print / Save as PDF
     </button>
 
     <div class="header">

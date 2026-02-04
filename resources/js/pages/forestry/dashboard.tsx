@@ -4,7 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 
-// Definisikan tipe data props jika menggunakan TypeScript (Opsional, tapi disarankan)
 interface DashboardProps {
     crowdStats: {
         status: string;
@@ -25,24 +24,22 @@ interface DashboardProps {
         last_position: string;
         last_update: string;
         phone: string;
+        emergency_contact: string;
+        duration_hours: number;
+        safety_status: 'normal' | 'warning' | 'critical';
     }>;
 }
 
 export default function ForestryDashboard({ crowdStats, chartData, todayStats, activeHikersList }: DashboardProps) {
     
-    // 1. Fungsi untuk Export Excel (CSV)
     const handleDownloadExcel = () => {
-        // Mengarahkan browser ke route download CSV
         window.location.href = '/forestry/export/csv';
     };
 
-    // 2. Fungsi untuk Export PDF (Print View)
     const handlePrintReport = () => {
-        // Membuka halaman laporan di tab baru agar dashboard tidak tertutup
         window.open('/forestry/report/print', '_blank');
     };
 
-    // Helper function untuk warna status crowd
     const getCrowdColor = (status: string) => {
         if (status === 'Critical') return 'bg-red-500 hover:bg-red-600';
         if (status === 'Warning') return 'bg-yellow-500 hover:bg-yellow-600';
@@ -69,7 +66,6 @@ export default function ForestryDashboard({ crowdStats, chartData, todayStats, a
                         </p>
                     </div>
                     <div className="flex gap-2">
-                        {/* UPDATE: Tombol sekarang memiliki fungsi onClick */}
                         <Button variant="outline" size="sm" onClick={handleDownloadExcel}>
                             Download Excel
                         </Button>
@@ -112,19 +108,18 @@ export default function ForestryDashboard({ crowdStats, chartData, todayStats, a
                         </CardContent>
                     </Card>
 
-                    {/* Quick Analysis (Placeholder Grafik Sederhana) */}
+                    {/* Quick Analysis */}
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">Weekly Trend</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            {/* Visualisasi Bar Chart Sederhana menggunakan CSS Flex */}
                             <div className="flex items-end justify-between h-12 gap-1 mt-2">
                                 {chartData.map((data, index) => (
                                     <div key={index} className="flex flex-col items-center w-full group relative">
                                         <div 
                                             className="bg-blue-600 w-full rounded-t-sm hover:bg-blue-400 transition-all" 
-                                            style={{ height: `${Math.min(data.count * 10, 100)}%` }} // Asumsi skala sederhana
+                                            style={{ height: `${Math.min(data.count * 10, 100)}%` }} 
                                         ></div>
                                     </div>
                                 ))}
@@ -137,7 +132,7 @@ export default function ForestryDashboard({ crowdStats, chartData, todayStats, a
                 {/* Bagian 3: Tabel Monitoring Aktif (Khusus Safety) */}
                 <Card className="col-span-3">
                     <CardHeader>
-                        <CardTitle>Active Hikers Monitoring</CardTitle>
+                        <CardTitle>Active Hikers Monitoring (Safety Alert System)</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div className="overflow-x-auto">
@@ -155,18 +150,38 @@ export default function ForestryDashboard({ crowdStats, chartData, todayStats, a
                                 <tbody>
                                     {activeHikersList.length > 0 ? (
                                         activeHikersList.map((hike) => (
-                                            <tr key={hike.id} className="border-b dark:border-gray-700">
+                                            <tr 
+                                                key={hike.id} 
+                                                className={`border-b ${hike.safety_status === 'critical' ? 'bg-red-50 dark:bg-red-900/20' : 'dark:border-gray-700'}`}
+                                            >
                                                 <td className="px-4 py-3 font-medium">{hike.registration_id}</td>
                                                 <td className="px-4 py-3">{hike.hiker_name}</td>
                                                 <td className="px-4 py-3">{hike.last_position}</td>
                                                 <td className="px-4 py-3">{hike.last_update}</td>
                                                 <td className="px-4 py-3">
-                                                    <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">Active</span>
+                                                    {/* Indikator Visual Status Safety */}
+                                                    {hike.safety_status === 'critical' ? (
+                                                        <div className="flex items-center gap-2 text-red-600 font-bold animate-pulse">
+                                                            <span>OVERDUE ({hike.duration_hours}h)</span>
+                                                        </div>
+                                                    ) : hike.safety_status === 'warning' ? (
+                                                        <span className="bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-0.5 rounded">
+                                                            Warning ({hike.duration_hours}h)
+                                                        </span>
+                                                    ) : (
+                                                        <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">
+                                                            Normal ({hike.duration_hours}h)
+                                                        </span>
+                                                    )}
                                                 </td>
                                                 <td className="px-4 py-3">
-                                                    {/* Tombol SOS menggunakan data Phone */}
-                                                    <Button variant="ghost" size="sm" onClick={() => alert(`Call Emergency: ${hike.phone}`)}>
-                                                        SOS Contact
+                                                    {/* Tombol SOS / Kontak */}
+                                                    <Button 
+                                                        variant={hike.safety_status === 'critical' ? "destructive" : "ghost"} 
+                                                        size="sm" 
+                                                        onClick={() => alert(`EMERGENCY CONTACT INFO \n\n Hiker: ${hike.hiker_name}\n Phone: ${hike.phone}\n\n Emergency Contact:\n${hike.emergency_contact}`)}
+                                                    >
+                                                        {hike.safety_status === 'critical' ? 'SOS ALERT' : 'Contact'}
                                                     </Button>
                                                 </td>
                                             </tr>

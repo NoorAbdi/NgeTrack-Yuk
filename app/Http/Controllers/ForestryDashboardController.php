@@ -6,6 +6,7 @@ use App\Models\Hike;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Response;
 
 class ForestryDashboardController extends Controller
 {
@@ -29,16 +30,31 @@ class ForestryDashboardController extends Controller
 
         $activeHikers = Hike::with(['user', 'lastLog.checkpoint'])
             ->where('status', 'active')
-            ->orderBy('created_at', 'desc')
+            ->orderBy('created_at', 'asc')
             ->get()
             ->map(function ($hike) {
+                
+                $durationHours = $hike->created_at->diffInHours(Carbon::now());
+                
+                $safetyStatus = 'normal';
+                if ($durationHours > 10) {
+                    $safetyStatus = 'critical'; 
+                } elseif ($durationHours > 5) {
+                    $safetyStatus = 'warning';
+                }
+
                 return [
                     'id' => $hike->id,
                     'hiker_name' => $hike->user->name,
                     'registration_id' => $hike->hike_registration_id,
                     'last_position' => $hike->lastLog ? $hike->lastLog->checkpoint->name : 'Basecamp',
                     'last_update' => $hike->lastLog ? $hike->lastLog->scanned_at->diffForHumans() : '-',
-                    'phone' => $hike->user->phone_number,
+                    'phone' => $hike->user->phone_number ?? '-',
+                    'emergency_contact' => $hike->user->emergency_contact_name 
+                        ? $hike->user->emergency_contact_name . ' (' . ($hike->user->emergency_contact_phone ?? '-') . ')' 
+                        : 'Not Set',
+                    'duration_hours' => $durationHours,
+                    'safety_status' => $safetyStatus, 
                 ];
             });
 
@@ -72,14 +88,19 @@ class ForestryDashboardController extends Controller
         $callback = function() use ($hikes) {
             $file = fopen('php://output', 'w');
             
-            fputcsv($file, ['Registration ID', 'Hiker Name', 'Email', 'Phone', 'Mountain', 'Date', 'Status', 'Completed At']);
+            fputcsv($file, ['Registration ID', 'Hiker Name', 'Email', 'Phone', 'Emergency Contact', 'Mountain', 'Date', 'Status', 'Completed At']);
 
             foreach ($hikes as $hike) {
+                $emergency = $hike->user->emergency_contact_name 
+                    ? $hike->user->emergency_contact_name . ' (' . $hike->user->emergency_contact_phone . ')'
+                    : '-';
+
                 fputcsv($file, [
                     $hike->hike_registration_id,
                     $hike->user->name,
                     $hike->user->email,
                     $hike->user->phone_number,
+                    $emergency,
                     $hike->mountain->name ?? 'N/A',
                     $hike->created_at->format('Y-m-d H:i'),
                     $hike->status,

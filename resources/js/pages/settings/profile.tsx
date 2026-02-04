@@ -17,7 +17,6 @@ import AppLayout from '@/layouts/app-layout';
 import SettingsLayout from '@/layouts/settings/layout';
 import { edit } from '@/routes/profile';
 
-// --- DEFINISI TIPE DATA BARU ---
 interface UserBadge {
     id: number;
     name: string;
@@ -60,13 +59,14 @@ export default function Profile({
     hikeHistory = [],
 }: ProfileProps) {
     const { auth } = usePage<SharedData>().props;
+    const user = auth.user as any; 
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Profile settings" />
 
             <SettingsLayout>
-                <div className="space-y-10"> {/* Tambah jarak antar section */}
+                <div className="space-y-10">
                     
                     {/* ================================================== */}
                     {/* BAGIAN 1: GAMIFIKASI (LENCANA)                     */}
@@ -149,15 +149,14 @@ export default function Profile({
                     <Separator />
 
                     {/* ================================================== */}
-                    {/* BAGIAN 3: FORM UPDATE PROFIL (BAWAAN)              */}
+                    {/* BAGIAN 3: FORM UPDATE PROFIL & KONTAK DARURAT      */}
                     {/* ================================================== */}
                     <section className='space-y-6'>
                         <HeadingSmall
-                            title="Profile information"
-                            description="Update your name and email address"
+                            title="Profile & Safety Information"
+                            description="Update your personal details and emergency contacts."
                         />
 
-                        {/* Form Bawaan - Tidak Diubah */}
                         <Form
                             {...ProfileController.update.form()}
                             options={{ preserveScroll: true }}
@@ -165,12 +164,13 @@ export default function Profile({
                         >
                             {({ processing, recentlySuccessful, errors }) => (
                                 <>
+                                    {/* --- Data Diri Standar --- */}
                                     <div className="grid gap-2">
                                         <Label htmlFor="name">Name</Label>
                                         <Input
                                             id="name"
                                             className="mt-1 block w-full"
-                                            defaultValue={auth.user.name}
+                                            defaultValue={user.name}
                                             name="name"
                                             required
                                             autoComplete="name"
@@ -185,7 +185,7 @@ export default function Profile({
                                             id="email"
                                             type="email"
                                             className="mt-1 block w-full"
-                                            defaultValue={auth.user.email}
+                                            defaultValue={user.email}
                                             name="email"
                                             required
                                             autoComplete="username"
@@ -194,7 +194,64 @@ export default function Profile({
                                         <InputError className="mt-2" message={errors.email} />
                                     </div>
 
-                                    {mustVerifyEmail && auth.user.email_verified_at === null && (
+                                    {/* --- Field Baru: No HP (Penting untuk Safety) --- */}
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="phone_number">Phone Number (WhatsApp)</Label>
+                                        <Input
+                                            id="phone_number"
+                                            type="tel"
+                                            className="mt-1 block w-full"
+                                            defaultValue={user.phone_number || ''}
+                                            name="phone_number"
+                                            required
+                                            placeholder="0812..."
+                                        />
+                                        <p className="text-xs text-muted-foreground">
+                                            Used by forestry officers for emergency coordination.
+                                        </p>
+                                        <InputError className="mt-2" message={errors.phone_number} />
+                                    </div>
+
+                                    <Separator className="my-4" />
+
+                                    {/* --- Field Baru: Kontak Darurat (Emergency Contact) --- */}
+                                    <div className="space-y-4">
+                                        <h3 className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                                            Emergency Contact (Kontak Darurat)
+                                        </h3>
+                                        
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div className="grid gap-2">
+                                                <Label htmlFor="emergency_contact_name">Name of Relative/Friend</Label>
+                                                <Input
+                                                    id="emergency_contact_name"
+                                                    className="mt-1 block w-full"
+                                                    defaultValue={user.emergency_contact_name || ''}
+                                                    name="emergency_contact_name"
+                                                    required
+                                                    placeholder="e.g. Budi (Father)"
+                                                />
+                                                <InputError className="mt-2" message={errors.emergency_contact_name} />
+                                            </div>
+
+                                            <div className="grid gap-2">
+                                                <Label htmlFor="emergency_contact_phone">Relative's Phone Number</Label>
+                                                <Input
+                                                    id="emergency_contact_phone"
+                                                    type="tel"
+                                                    className="mt-1 block w-full"
+                                                    defaultValue={user.emergency_contact_phone || ''}
+                                                    name="emergency_contact_phone"
+                                                    required
+                                                    placeholder="0812..."
+                                                />
+                                                <InputError className="mt-2" message={errors.emergency_contact_phone} />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* --- Verifikasi Email (Logic Bawaan) --- */}
+                                    {mustVerifyEmail && user.email_verified_at === null && (
                                         <div>
                                             <p className="-mt-4 text-sm text-muted-foreground">
                                                 Your email address is unverified.{' '}
@@ -214,8 +271,8 @@ export default function Profile({
                                         </div>
                                     )}
 
-                                    <div className="flex items-center gap-4">
-                                        <Button disabled={processing}>Save</Button>
+                                    <div className="flex items-center gap-4 pt-4">
+                                        <Button disabled={processing}>Save Changes</Button>
                                         <Transition
                                             show={recentlySuccessful}
                                             enter="transition ease-in-out"
