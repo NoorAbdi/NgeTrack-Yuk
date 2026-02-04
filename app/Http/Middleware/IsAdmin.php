@@ -15,7 +15,7 @@ class IsAdmin
      */
     public function handle(Request $request, Closure $next): Response
     {
-    if (!auth()->check() || auth()->user()->role !== 'admin') {
+    if (!auth()->check() || !in_array(auth()->user()->role, ['admin', 'forestry_officer'])) {
         abort(403, 'Unauthorized Access');
     }
 
