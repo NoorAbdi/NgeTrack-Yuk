@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\CheckpointController as AdminCheckpointController
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\CheckpointController as PublicCheckpointController;
 use App\Http\Controllers\HikerDashboardController;
+use App\Http\Controllers\ForestryDashboardController;
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
@@ -18,9 +19,7 @@ Route::get('/', function () {
     ]);
 })->name('home');
 
-Route::get('/dashboard', [HikerDashboardController::class, 'index'])
-    ->middleware(['auth', 'verified'])
-    ->name('dashboard');
+Route::get('/dashboard', [HikerDashboardController::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::get('/register-hike', [HikeRegistrationController::class, 'create'])->name('hike.create');
@@ -34,10 +33,7 @@ Route::middleware(['auth', 'is_admin'])->prefix('admin')->name('admin.')->group(
     Route::resource('checkpoints', AdminCheckpointController::class);
 });
 
-Route::middleware(['auth', 'verified', 'is_admin'])
-    ->prefix('forestry')
-    ->name('forestry.')
-    ->group(function () {
+Route::middleware(['auth', 'verified', 'is_admin'])->prefix('forestry')->name('forestry.')->group(function () {
         Route::get('/dashboard', [ForestryDashboardController::class, 'index'])->name('dashboard');
         Route::get('/export/csv', [ForestryDashboardController::class, 'downloadCsv'])->name('export.csv');
         Route::get('/report/print', [ForestryDashboardController::class, 'printReport'])->name('report.print');

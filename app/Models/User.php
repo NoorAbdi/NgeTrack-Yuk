@@ -59,4 +59,15 @@ class User extends Authenticatable
         return $this->belongsToMany(Badge::class, 'badge_user')
                     ->withTimestamps('unlocked_at');
     }
+
+    public function ledHikes()
+    {
+        return $this->hasMany(Hike::class, 'user_id');
+    }
+
+    public function joinedHikes()
+    {
+        return $this->belongsToMany(Hike::class, 'hike_members', 'user_id', 'hike_id')
+                    ->withTimestamps();
+    }
 }

@@ -58,7 +58,7 @@ class ForestryDashboardController extends Controller
                 ];
             });
 
-        return Inertia::render('Forestry/Dashboard', [
+        return Inertia::render('forestry/dashboard', [
             'crowdStats' => [
                 'active' => $activeHikersCount,
                 'capacity' => $maxCapacity,

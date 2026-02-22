@@ -29,7 +29,29 @@ export default function Register({ mountains }: { mountains: Mountain[] }) {
         planned_ascent_date: '',
         planned_descent_date: '',
         terms_accepted: false,
+        member_emails: [] as string[], // Tambahan state array untuk email anggota
     });
+
+    // --- LOGIKA GROUP HIKING ---
+    const MAX_MEMBERS = 9;
+
+    const addMember = () => {
+        if (data.member_emails.length < MAX_MEMBERS) {
+            setData('member_emails', [...data.member_emails, '']);
+        }
+    };
+
+    const removeMember = (indexToRemove: number) => {
+        const updatedEmails = data.member_emails.filter((_, index) => index !== indexToRemove);
+        setData('member_emails', updatedEmails);
+    };
+
+    const updateMemberEmail = (index: number, value: string) => {
+        const updatedEmails = [...data.member_emails];
+        updatedEmails[index] = value;
+        setData('member_emails', updatedEmails);
+    };
+    // ---------------------------
 
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
@@ -67,7 +89,7 @@ export default function Register({ mountains }: { mountains: Mountain[] }) {
                         <div className="mb-8 bg-gray-50 dark:bg-zinc-800/50 rounded-lg p-4 border border-gray-100 dark:border-zinc-700">
                             <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
                                 <span className="h-2 w-2 rounded-full bg-green-500"></span>
-                                Hiker Information
+                                Hiker Information (Leader)
                             </h3>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                                 <div>
@@ -137,8 +159,62 @@ export default function Register({ mountains }: { mountains: Mountain[] }) {
                                 </div>
                             </div>
 
+                            {/* --- INFORMASI GRUP (GROUP HIKING) --- */}
+                            <div className="pt-6 border-t border-gray-200 dark:border-zinc-800 space-y-4 mt-6">
+                                <div>
+                                    <h3 className="text-lg font-medium text-gray-900 dark:text-white">Group Members (Optional)</h3>
+                                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                                        Hiking with friends? Add their registered emails below. They will automatically join your group and appear on their dashboard. Max 10 people total.
+                                    </p>
+                                </div>
+
+                                {/* Render Input Dinamis berdasarkan array member_emails */}
+                                {data.member_emails.map((email, index) => (
+                                    <div key={index} className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                                        <div className="flex-1 w-full">
+                                            <Label className="sr-only">Member Email {index + 1}</Label>
+                                            <Input
+                                                type="email"
+                                                placeholder={`Member ${index + 1} Email (e.g. friend@example.com)`}
+                                                className="bg-white dark:bg-zinc-900 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-zinc-700"
+                                                value={email}
+                                                onChange={(e) => updateMemberEmail(index, e.target.value)}
+                                                required
+                                            />
+                                            {/* Error validation dari backend Laravel */}
+                                            {errors[`member_emails.${index}` as keyof typeof errors] && (
+                                                <p className="mt-1 text-red-600 text-xs font-medium">
+                                                    {errors[`member_emails.${index}` as keyof typeof errors]}
+                                                </p>
+                                            )}
+                                        </div>
+                                        <Button 
+                                            type="button" 
+                                            variant="destructive" 
+                                            size="sm"
+                                            onClick={() => removeMember(index)}
+                                            className="w-full sm:w-auto mt-2 sm:mt-0 h-10"
+                                        >
+                                            Remove
+                                        </Button>
+                                    </div>
+                                ))}
+
+                                {/* Tombol Tambah Anggota */}
+                                {data.member_emails.length < MAX_MEMBERS && (
+                                    <Button 
+                                        type="button" 
+                                        variant="outline" 
+                                        onClick={addMember}
+                                        className="w-full border-dashed border-gray-300 dark:border-zinc-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-zinc-800 h-10"
+                                    >
+                                        + Add Group Member ({data.member_emails.length}/9)
+                                    </Button>
+                                )}
+                            </div>
+
                             {/* Terms & Conditions */}
-                            <div className="pt-4">
+                            <div className="pt-6 border-t border-gray-200 dark:border-zinc-800">
                                 <div className="flex items-start space-x-3">
                                     <input
                                         type="checkbox"

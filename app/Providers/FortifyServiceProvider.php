@@ -6,12 +6,15 @@ use App\Actions\Fortify\CreateNewUser;
 use App\Actions\Fortify\ResetUserPassword;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
 use Laravel\Fortify\Fortify;
+use Laravel\Fortify\Contracts\LoginResponse;
 
 class FortifyServiceProvider extends ServiceProvider
 {
@@ -20,7 +23,27 @@ class FortifyServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->instance(LoginResponse::class, new class implements LoginResponse {
+            public function toResponse($request)
+            {
+                $user = Auth::user();
+                $role = $user ? $user->role : 'hiker';
+
+                if ($role === 'admin') {
+                    return Route::has('admin.dashboard') 
+                        ? redirect()->route('admin.dashboard') 
+                        : redirect('/admin/dashboard');
+                }
+
+                if ($role === 'forestry_officer') {
+                    return Route::has('forestry.dashboard') 
+                        ? redirect()->route('forestry.dashboard') 
+                        : redirect('/forestry/dashboard');
+                }
+
+                return redirect('/dashboard');
+            }
+        });
     }
 
     /**

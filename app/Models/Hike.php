@@ -44,4 +44,10 @@ class Hike extends Model
                 ->withPivot('unlocked_at')
                 ->withTimestamps();
     }
+
+    public function members()
+    {
+        return $this->belongsToMany(User::class, 'hike_members', 'hike_id', 'user_id')
+                    ->withTimestamps();
+    }
 }
