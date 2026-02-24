@@ -6,6 +6,7 @@ use Inertia\Inertia;
 use App\Http\Controllers\HikeRegistrationController;
 use App\Http\Controllers\Admin\CheckpointController as AdminCheckpointController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\ForestryOfficerController;
 use App\Http\Controllers\CheckpointController as PublicCheckpointController;
 use App\Http\Controllers\HikerDashboardController;
 use App\Http\Controllers\ForestryDashboardController;
@@ -31,6 +32,7 @@ Route::middleware('auth')->group(function () {
 Route::middleware(['auth', 'verified', 'is_admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
     Route::resource('checkpoints', AdminCheckpointController::class);
+    Route::resource('forestry-officers', ForestryOfficerController::class)->except(['show', 'edit', 'update']);
 });
 
 Route::middleware(['auth', 'verified', 'is_admin'])->prefix('forestry')->name('forestry.')->group(function () {

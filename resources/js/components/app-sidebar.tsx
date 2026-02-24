@@ -13,6 +13,7 @@ import { dashboard } from '@/routes';
 import { index as adminCheckpointsIndex } from '@/routes/admin/checkpoints/index';
 import { Link, usePage } from '@inertiajs/react';
 import { LayoutGrid, Package, QrCode } from 'lucide-react';
+import { MapPin, LayoutDashboard, Users } from 'lucide-react';
 import AppLogo from './app-logo';
 import { ModeToggle } from '@/components/mode-toggle';
 
@@ -34,6 +35,12 @@ export function AppSidebar() {
             title: 'Manage checkpoints',
             href: '/admin/checkpoints',
             icon: Package,
+        });
+        
+        mainNavItems.push({
+            title: 'Manage Officers',
+            href: '/admin/forestry-officers',
+            icon: Users,
         });
     } 
 
