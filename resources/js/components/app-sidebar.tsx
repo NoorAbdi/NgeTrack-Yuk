@@ -9,8 +9,8 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { dashboard } from '@/routes'; // Helper rute User
-import { index as adminCheckpointsIndex } from '@/routes/admin/checkpoints/index'; // Helper rute Checkpoint
+import { dashboard } from '@/routes';
+import { index as adminCheckpointsIndex } from '@/routes/admin/checkpoints/index';
 import { Link, usePage } from '@inertiajs/react';
 import { LayoutGrid, Package, QrCode } from 'lucide-react';
 import AppLogo from './app-logo';
@@ -32,7 +32,7 @@ export function AppSidebar() {
     if (user.role === 'admin') {
         mainNavItems.push({
             title: 'Manage checkpoints',
-            href: adminCheckpointsIndex(),
+            href: '/admin/checkpoints',
             icon: Package,
         });
     } 

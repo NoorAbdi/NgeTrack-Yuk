@@ -17,15 +17,14 @@ class CheckpointController extends Controller
                                 ->orderBy('mountain_id')
                                 ->orderBy('order')
                                 ->get();
-                                
-        return Inertia::render('Admin/Checkpoints/Index', [
-            'checkpoints' => $checkpoints,
+        return Inertia::render('admin/checkpoints/index', [
+            'checkpoints' => $checkpoints
         ]);
     }
 
     public function create()
     {
-        return Inertia::render('Admin/Checkpoints/Create', [
+        return Inertia::render('admin/checkpoints/create', [
             'mountains' => Mountain::all(),
         ]);
     }
@@ -36,19 +35,19 @@ class CheckpointController extends Controller
             'mountain_id' => 'required|exists:mountains,id',
             'name' => 'required|string|max:255',
             'slug' => 'required|string|max:255|unique:checkpoints',
-            'order' => 'required|integer',
+            'order' => 'required|integer'
         ]);
 
         Checkpoint::create($validated);
 
-        return Redirect::route('admin.checkpoints.index')->with('success', 'Checkpoint berhasil dibuat.');
+        return Redirect::route('admin.checkpoints.index')->with('success', 'Checkpoint created successfully.');
     }
 
     public function edit(Checkpoint $checkpoint)
     {
-        return Inertia::render('Admin/Checkpoints/Edit', [
+        return Inertia::render('admin/checkpoints/edit', [
             'checkpoint' => $checkpoint,
-            'mountains' => Mountain::all(), 
+            'mountains' => Mountain::all(),
         ]);
     }
 
@@ -58,17 +57,17 @@ class CheckpointController extends Controller
             'mountain_id' => 'required|exists:mountains,id',
             'name' => 'required|string|max:255',
             'slug' => 'required|string|max:255|unique:checkpoints,slug,' . $checkpoint->id,
-            'order' => 'required|integer',
+            'order' => 'required|integer'
         ]);
 
         $checkpoint->update($validated);
 
-        return Redirect::route('admin.checkpoints.index')->with('success', 'Checkpoint berhasil diperbarui.');
+        return Redirect::route('admin.checkpoints.index')->with('success', 'Checkpoint updated successfully.');
     }
 
     public function destroy(Checkpoint $checkpoint)
     {
         $checkpoint->delete();
-        return Redirect::route('admin.checkpoints.index')->with('success', 'Checkpoint berhasil dihapus.');
+        return Redirect::route('admin.checkpoints.index')->with('success', 'Checkpoint deleted successfully.');
     }
 }
