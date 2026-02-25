@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Hike;
+use App\Models\Mountain;
+use App\Models\User;
+use App\Services\HikeRegistrationService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Carbon\Carbon;
@@ -34,12 +37,15 @@ class ForestryDashboardController extends Controller
             ->get()
             ->map(function ($hike) {
                 
-                $durationHours = $hike->created_at->diffInHours(Carbon::now());
-                
+                $now = Carbon::now();
+                $durationHours = $hike->created_at->diffInHours($now);
+                $descentDeadline = Carbon::parse($hike->planned_descent_date);
                 $safetyStatus = 'normal';
-                if ($durationHours > 10) {
+                
+                if ($now->greaterThan($descentDeadline)) {
                     $safetyStatus = 'critical'; 
-                } elseif ($durationHours > 5) {
+                } 
+                elseif ($now->greaterThan($descentDeadline->copy()->subHours(3))) {
                     $safetyStatus = 'warning';
                 }
 
@@ -128,5 +134,61 @@ class ForestryDashboardController extends Controller
         ];
 
         return view('forestry.report_print', $data);
+    }
+
+    public function extendPermit(Request $request, Hike $hike)
+    {
+        $validated = $request->validate([
+            'new_descent_date' => 'required|date|after_or_equal:today',
+            'admin_notes' => 'required|string|max:500', 
+        ]);
+
+        $existingNotes = $hike->admin_notes ? $hike->admin_notes . "\n" : "";
+        $newNote = $existingNotes . "[" . now()->format('Y-m-d H:i') . "] Time extended by " . auth()->user()->name . ". Reason: " . $validated['admin_notes'];
+
+        $hike->update([
+            'planned_descent_date' => $validated['new_descent_date'],
+            'admin_notes' => $newNote,
+        ]);
+
+        return redirect()->back()->with('success', 'Permit extended! The Alert limit for this hiker has been adjusted.');
+    }
+
+    public function createBooking()
+    {
+        $mountains = Mountain::where('status', 'open')->get();
+        return Inertia::render('forestry/ExtendedBooking', [
+            'mountains' => $mountains
+        ]);
+    }
+
+    public function storeBooking(Request $request, HikeRegistrationService $registrationService)
+    {
+        $validated = $request->validate([
+            'email' => 'required|email|exists:users,email',
+            'mountain_id' => 'required|exists:mountains,id',
+            'planned_ascent_date' => 'required|date|after_or_equal:today',
+            'planned_descent_date' => 'required|date|after_or_equal:planned_ascent_date',
+            'admin_notes' => 'required|string|max:500',
+        ], [
+            'email.exists' => 'The hiker email address was not found in the system. Please ensure the hiker has registered with the application first.',
+        ]);
+
+        $user = User::where('email', $validated['email'])->first();
+        
+        $registrationId = $registrationService->generateUniqueId();
+
+        Hike::create([
+            'user_id' => $user->id,
+            'mountain_id' => $validated['mountain_id'],
+            'hike_registration_id' => $registrationId,
+            'status' => 'pending', 
+            'planned_ascent_date' => $validated['planned_ascent_date'],
+            'planned_descent_date' => $validated['planned_descent_date'],
+            'terms_accepted_at' => now(), 
+            'admin_notes' => "[SPECIAL PERMIT by " . auth()->user()->name . "] " . $validated['admin_notes'],
+        ]);
+
+        return redirect()->route('forestry.dashboard')->with('success', 'Extended Permit successfully created for ' . $user->name . '.');
     }
 }

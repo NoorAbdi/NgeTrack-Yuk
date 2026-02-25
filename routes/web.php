@@ -39,6 +39,9 @@ Route::middleware(['auth', 'verified', 'is_admin'])->prefix('forestry')->name('f
         Route::get('/dashboard', [ForestryDashboardController::class, 'index'])->name('dashboard');
         Route::get('/export/csv', [ForestryDashboardController::class, 'downloadCsv'])->name('export.csv');
         Route::get('/report/print', [ForestryDashboardController::class, 'printReport'])->name('report.print');
+        Route::put('/hikes/{hike}/extend', [ForestryDashboardController::class, 'extendPermit'])->name('hikes.extend');
+        Route::get('/extended-booking', [ForestryDashboardController::class, 'createBooking'])->name('booking.create');
+        Route::post('/extended-booking', [ForestryDashboardController::class, 'storeBooking'])->name('booking.store');
     });
 
 require __DIR__.'/settings.php'; 

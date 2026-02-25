@@ -14,13 +14,17 @@ import { index as adminCheckpointsIndex } from '@/routes/admin/checkpoints/index
 import { Link, usePage } from '@inertiajs/react';
 import { LayoutGrid, Package, QrCode } from 'lucide-react';
 import { MapPin, LayoutDashboard, Users } from 'lucide-react';
+import { CalendarClock } from 'lucide-react';
 import AppLogo from './app-logo';
 import { ModeToggle } from '@/components/mode-toggle';
 
 export function AppSidebar() {
     const { props } = usePage();
     const user = (props.auth as { user: { role: string } }).user;
-    const dashboardUrl = user.role === 'admin' ? '/admin/dashboard' : dashboard();
+    
+    const dashboardUrl = user.role === 'admin' 
+        ? '/admin/dashboard' 
+        : (user.role === 'forestry_officer' ? '/forestry/dashboard' : dashboard());
 
     const mainNavItems = [
         {
@@ -41,6 +45,14 @@ export function AppSidebar() {
             title: 'Manage Officers',
             href: '/admin/forestry-officers',
             icon: Users,
+        });
+    } 
+
+    else if (user.role === 'forestry_officer') {
+        mainNavItems.push({
+            title: 'Special Booking',
+            href: '/forestry/extended-booking',
+            icon: CalendarClock,
         });
     } 
 

@@ -1,8 +1,14 @@
 import AppLayout from '@/layouts/app-layout';
-import { Head } from '@inertiajs/react';
+import { Head, useForm } from '@inertiajs/react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Clock } from 'lucide-react';
+import { useState } from 'react';
 
 interface DashboardProps {
     crowdStats: {
@@ -27,6 +33,7 @@ interface DashboardProps {
         emergency_contact: string;
         duration_hours: number;
         safety_status: 'normal' | 'warning' | 'critical';
+        planned_descent_date?: string;
     }>;
 }
 
@@ -144,7 +151,7 @@ export default function ForestryDashboard({ crowdStats, chartData, todayStats, a
                                         <th className="px-4 py-3">Last Checkpoint</th>
                                         <th className="px-4 py-3">Last Update</th>
                                         <th className="px-4 py-3">Status</th>
-                                        <th className="px-4 py-3">Action</th>
+                                        <th className="px-4 py-3 text-right">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -174,15 +181,38 @@ export default function ForestryDashboard({ crowdStats, chartData, todayStats, a
                                                         </span>
                                                     )}
                                                 </td>
-                                                <td className="px-4 py-3">
-                                                    {/* Tombol SOS / Kontak */}
-                                                    <Button 
-                                                        variant={hike.safety_status === 'critical' ? "destructive" : "ghost"} 
-                                                        size="sm" 
-                                                        onClick={() => alert(`EMERGENCY CONTACT INFO \n\n Hiker: ${hike.hiker_name}\n Phone: ${hike.phone}\n\n Emergency Contact:\n${hike.emergency_contact}`)}
-                                                    >
-                                                        {hike.safety_status === 'critical' ? 'SOS ALERT' : 'Contact'}
-                                                    </Button>
+                                                <td className="px-4 py-3 text-right">
+                                                    <div className="flex justify-end gap-2">
+                                                        {/* Tombol SOS / Kontak */}
+                                                        <Button 
+                                                            variant={hike.safety_status === 'critical' ? "destructive" : "ghost"} 
+                                                            size="sm" 
+                                                            onClick={() => alert(`EMERGENCY CONTACT INFO \n\n Hiker: ${hike.hiker_name}\n Phone: ${hike.phone}\n\n Emergency Contact:\n${hike.emergency_contact}`)}
+                                                        >
+                                                            {hike.safety_status === 'critical' ? 'SOS ALERT' : 'Contact'}
+                                                        </Button>
+
+                                                        {/* --- TAMBAHAN: MODAL EXTEND PERMIT --- */}
+                                                        <Dialog>
+                                                            <DialogTrigger asChild>
+                                                                <Button variant="outline" size="sm" className="text-orange-600 border-orange-200 hover:bg-orange-50">
+                                                                    <Clock className="w-4 h-4 mr-1" />
+                                                                    Extend
+                                                                </Button>
+                                                            </DialogTrigger>
+                                                            <DialogContent>
+                                                                <DialogHeader>
+                                                                    <DialogTitle>Extend Permit / Adjust Alert</DialogTitle>
+                                                                    <DialogDescription>
+                                                                        Update the descent date for <b>{hike.hiker_name}</b> to prevent false safety alerts (e.g., for camping).
+                                                                    </DialogDescription>
+                                                                </DialogHeader>
+                                                                
+                                                                <ExtendPermitForm hike={hike} />
+                                                            </DialogContent>
+                                                        </Dialog>
+                                                        {/* -------------------------------------- */}
+                                                    </div>
                                                 </td>
                                             </tr>
                                         ))
@@ -199,5 +229,58 @@ export default function ForestryDashboard({ crowdStats, chartData, todayStats, a
 
             </div>
         </AppLayout>
+    );
+}
+
+function ExtendPermitForm({ hike }: { hike: any }) {
+    const [open, setOpen] = useState(true);
+    
+    const { data, setData, put, processing, errors } = useForm({
+        new_descent_date: hike.planned_descent_date ? hike.planned_descent_date.substring(0, 10) : new Date().toISOString().substring(0, 10),
+        admin_notes: '',
+    });
+
+    const submit = (e: React.FormEvent) => {
+        e.preventDefault();
+        put(`/forestry/hikes/${hike.id}/extend`, {
+            onSuccess: () => {
+            }
+        });
+    };
+
+    return (
+        <form onSubmit={submit} className="space-y-4 pt-4">
+            <div>
+                <Label htmlFor={`new_descent_date_${hike.id}`}>New Descent Date</Label>
+                <Input
+                    id={`new_descent_date_${hike.id}`}
+                    type="datetime-local"
+                    className="mt-1"
+                    value={data.new_descent_date}
+                    onChange={(e) => setData('new_descent_date', e.target.value)}
+                    required
+                />
+                {errors.new_descent_date && <p className="text-red-500 text-xs mt-1">{errors.new_descent_date}</p>}
+            </div>
+
+            <div>
+                <Label htmlFor={`admin_notes_${hike.id}`}>Reason / Notes</Label>
+                <Textarea
+                    id={`admin_notes_${hike.id}`}
+                    placeholder="e.g. Hiker confirmed camping at Pos 8 for 2 extra days."
+                    className="mt-1"
+                    value={data.admin_notes}
+                    onChange={(e) => setData('admin_notes', e.target.value)}
+                    required
+                />
+                {errors.admin_notes && <p className="text-red-500 text-xs mt-1">{errors.admin_notes}</p>}
+            </div>
+
+            <div className="flex justify-end pt-4">
+                <Button type="submit" disabled={processing} className="bg-orange-600 hover:bg-orange-700 text-white">
+                    {processing ? 'Updating...' : 'Save Changes'}
+                </Button>
+            </div>
+        </form>
     );
 }
