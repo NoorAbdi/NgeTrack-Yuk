@@ -7,8 +7,9 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Clock } from 'lucide-react';
-import { useState } from 'react';
+import { Calendar } from '@/components/ui/calendar';
+import { Clock, Calendar as CalendarIcon } from 'lucide-react';
+import { useState, useEffect } from 'react';
 
 interface DashboardProps {
     crowdStats: {
@@ -33,12 +34,19 @@ interface DashboardProps {
         emergency_contact: string;
         duration_hours: number;
         safety_status: 'normal' | 'warning' | 'critical';
-        planned_descent_date?: string;
+        planned_descent_date?: string; 
     }>;
 }
 
 export default function ForestryDashboard({ crowdStats, chartData, todayStats, activeHikersList }: DashboardProps) {
     
+    const [currentTime, setCurrentTime] = useState(new Date());
+
+    useEffect(() => {
+        const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+        return () => clearInterval(timer);
+    }, []);
+
     const handleDownloadExcel = () => {
         window.location.href = '/forestry/export/csv';
     };
@@ -84,7 +92,6 @@ export default function ForestryDashboard({ crowdStats, chartData, todayStats, a
 
                 {/* Bagian 2: Statistik Utama (Top Cards) */}
                 <div className="grid gap-4 md:grid-cols-3">
-                    {/* Crowd Monitor Card */}
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">Real-time Crowd</CardTitle>
@@ -95,14 +102,12 @@ export default function ForestryDashboard({ crowdStats, chartData, todayStats, a
                             <p className="text-xs text-muted-foreground mt-1">
                                 {crowdStats.percentage}% of maximum trail capacity.
                             </p>
-                            {/* Simple Progress Bar */}
                             <div className="w-full bg-gray-200 rounded-full h-2.5 mt-2 dark:bg-gray-700">
                                 <div className={`h-2.5 rounded-full ${getCrowdColor(crowdStats.status)}`} style={{ width: `${crowdStats.percentage}%` }}></div>
                             </div>
                         </CardContent>
                     </Card>
 
-                    {/* Today's Stats */}
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">Daily Traffic</CardTitle>
@@ -115,7 +120,6 @@ export default function ForestryDashboard({ crowdStats, chartData, todayStats, a
                         </CardContent>
                     </Card>
 
-                    {/* Quick Analysis */}
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">Weekly Trend</CardTitle>
@@ -136,96 +140,132 @@ export default function ForestryDashboard({ crowdStats, chartData, todayStats, a
                     </Card>
                 </div>
 
-                {/* Bagian 3: Tabel Monitoring Aktif (Khusus Safety) */}
-                <Card className="col-span-3">
-                    <CardHeader>
-                        <CardTitle>Active Hikers Monitoring (Safety Alert System)</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-sm text-left">
-                                <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-                                    <tr>
-                                        <th className="px-4 py-3">Reg ID</th>
-                                        <th className="px-4 py-3">Hiker Name</th>
-                                        <th className="px-4 py-3">Last Checkpoint</th>
-                                        <th className="px-4 py-3">Last Update</th>
-                                        <th className="px-4 py-3">Status</th>
-                                        <th className="px-4 py-3 text-right">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {activeHikersList.length > 0 ? (
-                                        activeHikersList.map((hike) => (
-                                            <tr 
-                                                key={hike.id} 
-                                                className={`border-b ${hike.safety_status === 'critical' ? 'bg-red-50 dark:bg-red-900/20' : 'dark:border-gray-700'}`}
-                                            >
-                                                <td className="px-4 py-3 font-medium">{hike.registration_id}</td>
-                                                <td className="px-4 py-3">{hike.hiker_name}</td>
-                                                <td className="px-4 py-3">{hike.last_position}</td>
-                                                <td className="px-4 py-3">{hike.last_update}</td>
-                                                <td className="px-4 py-3">
-                                                    {/* Indikator Visual Status Safety */}
-                                                    {hike.safety_status === 'critical' ? (
-                                                        <div className="flex items-center gap-2 text-red-600 font-bold animate-pulse">
-                                                            <span>OVERDUE ({hike.duration_hours}h)</span>
-                                                        </div>
-                                                    ) : hike.safety_status === 'warning' ? (
-                                                        <span className="bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-0.5 rounded">
-                                                            Warning ({hike.duration_hours}h)
-                                                        </span>
-                                                    ) : (
-                                                        <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">
-                                                            Normal ({hike.duration_hours}h)
-                                                        </span>
-                                                    )}
-                                                </td>
-                                                <td className="px-4 py-3 text-right">
-                                                    <div className="flex justify-end gap-2">
-                                                        {/* Tombol SOS / Kontak */}
-                                                        <Button 
-                                                            variant={hike.safety_status === 'critical' ? "destructive" : "ghost"} 
-                                                            size="sm" 
-                                                            onClick={() => alert(`EMERGENCY CONTACT INFO \n\n Hiker: ${hike.hiker_name}\n Phone: ${hike.phone}\n\n Emergency Contact:\n${hike.emergency_contact}`)}
-                                                        >
-                                                            {hike.safety_status === 'critical' ? 'SOS ALERT' : 'Contact'}
-                                                        </Button>
-
-                                                        {/* --- TAMBAHAN: MODAL EXTEND PERMIT --- */}
-                                                        <Dialog>
-                                                            <DialogTrigger asChild>
-                                                                <Button variant="outline" size="sm" className="text-orange-600 border-orange-200 hover:bg-orange-50">
-                                                                    <Clock className="w-4 h-4 mr-1" />
-                                                                    Extend
-                                                                </Button>
-                                                            </DialogTrigger>
-                                                            <DialogContent>
-                                                                <DialogHeader>
-                                                                    <DialogTitle>Extend Permit / Adjust Alert</DialogTitle>
-                                                                    <DialogDescription>
-                                                                        Update the descent date for <b>{hike.hiker_name}</b> to prevent false safety alerts (e.g., for camping).
-                                                                    </DialogDescription>
-                                                                </DialogHeader>
-                                                                
-                                                                <ExtendPermitForm hike={hike} />
-                                                            </DialogContent>
-                                                        </Dialog>
-                                                        {/* -------------------------------------- */}
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ))
-                                    ) : (
+                {/* Bagian 3: Tabel & Panel Waktu */}
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+                    
+                    {/* TABEL HIKER (Mengambil 3/4 layar di perangkat besar) */}
+                    <Card className="lg:col-span-3">
+                        <CardHeader>
+                            <CardTitle>Active Hikers Monitoring (Safety Alert System)</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-sm text-left">
+                                    <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                                         <tr>
-                                            <td colSpan={6} className="text-center py-4 text-gray-500">No hikers currently on the trail.</td>
+                                            <th className="px-4 py-3">Reg ID</th>
+                                            <th className="px-4 py-3">Hiker Name</th>
+                                            <th className="px-4 py-3">Last Checkpoint</th>
+                                            <th className="px-4 py-3">Last Update</th>
+                                            <th className="px-4 py-3">Status</th>
+                                            <th className="px-4 py-3 text-right">Action</th>
                                         </tr>
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
-                    </CardContent>
-                </Card>
+                                    </thead>
+                                    <tbody>
+                                        {activeHikersList.length > 0 ? (
+                                            activeHikersList.map((hike) => (
+                                                <tr 
+                                                    key={hike.id} 
+                                                    className={`border-b ${hike.safety_status === 'critical' ? 'bg-red-50 dark:bg-red-900/20' : 'dark:border-gray-700'}`}
+                                                >
+                                                    <td className="px-4 py-3 font-medium">{hike.registration_id}</td>
+                                                    <td className="px-4 py-3">{hike.hiker_name}</td>
+                                                    <td className="px-4 py-3">{hike.last_position}</td>
+                                                    <td className="px-4 py-3">{hike.last_update}</td>
+                                                    <td className="px-4 py-3">
+                                                        {hike.safety_status === 'critical' ? (
+                                                            <div className="flex items-center gap-2 text-red-600 font-bold animate-pulse">
+                                                                <span>OVERDUE ({hike.duration_hours}h)</span>
+                                                            </div>
+                                                        ) : hike.safety_status === 'warning' ? (
+                                                            <span className="bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-0.5 rounded">
+                                                                Warning ({hike.duration_hours}h)
+                                                            </span>
+                                                        ) : (
+                                                            <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">
+                                                                Normal ({hike.duration_hours}h)
+                                                            </span>
+                                                        )}
+                                                    </td>
+                                                    <td className="px-4 py-3 text-right">
+                                                        <div className="flex justify-end gap-2">
+                                                            <Button 
+                                                                variant={hike.safety_status === 'critical' ? "destructive" : "ghost"} 
+                                                                size="sm" 
+                                                                onClick={() => alert(`EMERGENCY CONTACT INFO \n\n Hiker: ${hike.hiker_name}\n Phone: ${hike.phone}\n\n Emergency Contact:\n${hike.emergency_contact}`)}
+                                                            >
+                                                                {hike.safety_status === 'critical' ? 'SOS ALERT' : 'Contact'}
+                                                            </Button>
+
+                                                            <Dialog>
+                                                                <DialogTrigger asChild>
+                                                                    <Button variant="outline" size="sm" className="text-orange-600 border-orange-200 hover:bg-orange-50">
+                                                                        <Clock className="w-4 h-4 mr-1" />
+                                                                        Extend
+                                                                    </Button>
+                                                                </DialogTrigger>
+                                                                <DialogContent>
+                                                                    <DialogHeader>
+                                                                        <DialogTitle>Extend Permit / Adjust Alert</DialogTitle>
+                                                                        <DialogDescription>
+                                                                            Update the descent date for <b>{hike.hiker_name}</b> to prevent false safety alerts (e.g., for camping).
+                                                                        </DialogDescription>
+                                                                    </DialogHeader>
+                                                                    <ExtendPermitForm hike={hike} />
+                                                                </DialogContent>
+                                                            </Dialog>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            ))
+                                        ) : (
+                                            <tr>
+                                                <td colSpan={6} className="text-center py-4 text-gray-500">No hikers currently on the trail.</td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* PANEL WAKTU & KALENDER (Mengambil 1/4 layar di sisi kanan) */}
+                    <div className="flex flex-col gap-4">
+                        
+                        {/* Jam Digital Real-time */}
+                        <Card className="bg-zinc-900 dark:bg-black text-white border-orange-500/30 border-2 overflow-hidden relative">
+                            <div className="absolute top-0 left-0 w-full h-1 bg-orange-500/50"></div>
+                            <CardContent className="p-6 flex flex-col items-center justify-center text-center">
+                                <Clock className="w-8 h-8 text-orange-400 mb-3" />
+                                {/* tabular-nums mencegah angka melompat-lompat saat detik berubah */}
+                                <div className="text-4xl lg:text-3xl xl:text-4xl font-mono font-bold tracking-widest text-orange-400 tabular-nums">
+                                    {currentTime.toLocaleTimeString('en-US', { hour12: false })}
+                                </div>
+                                <div className="text-sm mt-2 text-zinc-400 font-medium">
+                                    {currentTime.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        {/* Kalender Visual */}
+                        <Card>
+                            <CardHeader className="pb-2">
+                                <CardTitle className="text-sm font-medium flex items-center gap-2">
+                                    <CalendarIcon className="w-4 h-4 text-orange-500" /> 
+                                    Schedule Reference
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="flex justify-center pb-6">
+                                <Calendar
+                                    mode="single"
+                                    selected={currentTime}
+                                    className="rounded-md border shadow bg-white dark:bg-zinc-950/50"
+                                />
+                            </CardContent>
+                        </Card>
+                        
+                    </div>
+                </div>
 
             </div>
         </AppLayout>
@@ -233,25 +273,21 @@ export default function ForestryDashboard({ crowdStats, chartData, todayStats, a
 }
 
 function ExtendPermitForm({ hike }: { hike: any }) {
-    const [open, setOpen] = useState(true);
     
     const { data, setData, put, processing, errors } = useForm({
-        new_descent_date: hike.planned_descent_date ? hike.planned_descent_date.substring(0, 10) : new Date().toISOString().substring(0, 10),
+        new_descent_date: hike.planned_descent_date ? hike.planned_descent_date.substring(0, 16) : new Date().toISOString().substring(0, 16),
         admin_notes: '',
     });
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
-        put(`/forestry/hikes/${hike.id}/extend`, {
-            onSuccess: () => {
-            }
-        });
+        put(`/forestry/hikes/${hike.id}/extend`);
     };
 
     return (
         <form onSubmit={submit} className="space-y-4 pt-4">
             <div>
-                <Label htmlFor={`new_descent_date_${hike.id}`}>New Descent Date</Label>
+                <Label htmlFor={`new_descent_date_${hike.id}`}>New Descent Date & Time</Label>
                 <Input
                     id={`new_descent_date_${hike.id}`}
                     type="datetime-local"
@@ -267,7 +303,7 @@ function ExtendPermitForm({ hike }: { hike: any }) {
                 <Label htmlFor={`admin_notes_${hike.id}`}>Reason / Notes</Label>
                 <Textarea
                     id={`admin_notes_${hike.id}`}
-                    placeholder="e.g. Hiker confirmed camping at Pos 8 for 2 extra days."
+                    placeholder="e.g. Hiker confirmed camping at Pos 3 for 2 extra days."
                     className="mt-1"
                     value={data.admin_notes}
                     onChange={(e) => setData('admin_notes', e.target.value)}
