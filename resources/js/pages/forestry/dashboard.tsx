@@ -233,15 +233,15 @@ export default function ForestryDashboard({ crowdStats, chartData, todayStats, a
                     <div className="flex flex-col gap-4">
                         
                         {/* Jam Digital Real-time */}
-                        <Card className="bg-zinc-900 dark:bg-black text-white border-orange-500/30 border-2 overflow-hidden relative">
-                            <div className="absolute top-0 left-0 w-full h-1 bg-orange-500/50"></div>
+                        <Card className="border-orange-500/40 border-2 overflow-hidden relative bg-white dark:bg-zinc-950 shadow-sm">
+                            <div className="absolute top-0 left-0 w-full h-1.5 bg-orange-500"></div>
                             <CardContent className="p-6 flex flex-col items-center justify-center text-center">
-                                <Clock className="w-8 h-8 text-orange-400 mb-3" />
+                                <Clock className="w-8 h-8 text-orange-500 mb-3" />
                                 {/* tabular-nums mencegah angka melompat-lompat saat detik berubah */}
-                                <div className="text-4xl lg:text-3xl xl:text-4xl font-mono font-bold tracking-widest text-orange-400 tabular-nums">
+                                <div className="text-4xl lg:text-3xl xl:text-4xl font-mono font-bold tracking-widest text-orange-600 dark:text-orange-400 tabular-nums">
                                     {currentTime.toLocaleTimeString('en-US', { hour12: false })}
                                 </div>
-                                <div className="text-sm mt-2 text-zinc-400 font-medium">
+                                <div className="text-sm mt-2 text-gray-500 dark:text-zinc-400 font-medium">
                                     {currentTime.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
                                 </div>
                             </CardContent>
