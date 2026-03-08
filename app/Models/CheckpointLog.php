@@ -38,4 +38,8 @@ class CheckpointLog extends Model
     {
         return $this->belongsTo(Checkpoint::class);
     }
+
+    protected $casts = [
+        'scanned_at' => 'datetime',
+    ];
 }
