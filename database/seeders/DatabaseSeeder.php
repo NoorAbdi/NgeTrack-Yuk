@@ -34,7 +34,6 @@ class DatabaseSeeder extends Seeder
             MountainSeeder::class,
             CheckpointSeeder::class,
             BadgeSeeder::class,
-            DummyHikerSeeder::class,
         ]);
     }
 }
