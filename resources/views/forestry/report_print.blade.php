@@ -36,7 +36,7 @@
     </div>
 
     <div class="stats-box">
-    <p>Total Rescued (Selamat): {{ $rescued_hikers }} Hiker(s)</p>
+    <p>Total Rescued: {{ $rescued_hikers }} Hiker(s)</p>
     <p style="color: red;">Currently Missing (SAR): {{ $missing_hikers }} Hiker(s)</p>
     </div>
 

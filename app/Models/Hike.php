@@ -16,6 +16,7 @@ class Hike extends Model
         'completed_at',
         'terms_accepted_at',
         'admin_notes',
+        'evacuation_status',
     ];
 
     protected $casts = [
