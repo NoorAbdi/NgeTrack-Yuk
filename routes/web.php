@@ -40,6 +40,7 @@ Route::middleware(['auth', 'verified', 'is_admin'])->prefix('forestry')->name('f
         Route::get('/export/csv', [ForestryDashboardController::class, 'downloadCsv'])->name('export.csv');
         Route::get('/report/print', [ForestryDashboardController::class, 'printReport'])->name('report.print');
         Route::put('/hikes/{hike}/extend', [ForestryDashboardController::class, 'extendPermit'])->name('hikes.extend');
+        Route::put('/hikes/{hike}/evacuation', [ForestryDashboardController::class, 'updateEvacuation'])->name('hikes.evacuation');
         Route::get('/extended-booking', [ForestryDashboardController::class, 'createBooking'])->name('booking.create');
         Route::post('/extended-booking', [ForestryDashboardController::class, 'storeBooking'])->name('booking.store');
     });

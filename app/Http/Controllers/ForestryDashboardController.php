@@ -61,6 +61,7 @@ class ForestryDashboardController extends Controller
                         : 'Not Set',
                     'duration_hours' => $durationHours,
                     'safety_status' => $safetyStatus, 
+                    'evacuation_status' => $hike->evacuation_status,
                 ];
             });
 
@@ -127,6 +128,8 @@ class ForestryDashboardController extends Controller
             'total_hikers' => Hike::count(),
             'active_hikers' => Hike::where('status', 'active')->count(),
             'completed_hikers' => Hike::where('status', 'completed')->count(),
+            'missing_hikers' => Hike::where('evacuation_status', 'searching')->count(),
+            'rescued_hikers' => Hike::where('evacuation_status', 'rescued')->count(),
             'recent_hikes' => Hike::with(['user', 'lastLog.checkpoint'])
                                 ->orderBy('created_at', 'desc')
                                 ->limit(50) 
@@ -152,6 +155,31 @@ class ForestryDashboardController extends Controller
         ]);
 
         return redirect()->back()->with('success', 'Permit extended! The Alert limit for this hiker has been adjusted.');
+    }
+
+    public function updateEvacuation(Request $request, Hike $hike)
+    {
+        $validated = $request->validate([
+            'status' => 'required|in:searching,rescued',
+        ]);
+
+        $note = "[" . now()->format('Y-m-d H:i') . "] EVACUATION STATUS: " . strtoupper($validated['status']) . " by " . auth()->user()->name;
+
+        if ($validated['status'] === 'rescued') {
+            $hike->update([
+                'evacuation_status' => 'rescued',
+                'status' => 'completed',
+                'completed_at' => now(),
+                'admin_notes' => $hike->admin_notes ? $hike->admin_notes . "\n" . $note : $note,
+            ]);
+            return redirect()->back()->with('success', 'Hiker marked as RESCUED and hike completed.');
+        } else {
+            $hike->update([
+                'evacuation_status' => 'searching',
+                'admin_notes' => $hike->admin_notes ? $hike->admin_notes . "\n" . $note : $note,
+            ]);
+            return redirect()->back()->with('success', 'SAR Operation Initiated. Hiker marked as MISSING.');
+        }
     }
 
     public function createBooking()

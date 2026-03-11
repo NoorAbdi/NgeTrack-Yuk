@@ -18,7 +18,7 @@ class MountainSeeder extends Seeder
         Mountain::create([
             'name' => 'Papandayan Mountain',
             'slug' => 'papandayan',
-            'location' => 'Garut, Jawa Barat'
+            'location' => 'Garut, West Java, Indonesia',
         ]);
     }
 }

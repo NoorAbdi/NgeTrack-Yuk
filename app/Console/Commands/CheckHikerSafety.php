@@ -29,7 +29,7 @@ class CheckHikerSafety extends Command
             if ($isCritical) {
                 $lastSent = $hike->last_alert_sent_at ? Carbon::parse($hike->last_alert_sent_at) : null;
                 
-                if (!$lastSent || $now->diffInHours($lastSent) >= 1) {
+                if (!$lastSent || $now->diffInHours($lastSent) >= 30) {
                     $this->sendTelegramAlert($hike);
                 }
             }

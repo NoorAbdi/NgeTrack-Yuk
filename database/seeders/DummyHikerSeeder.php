@@ -30,11 +30,22 @@ class DummyHikerSeeder extends Seeder
         );
 
         $checkpoints = [];
-        $checkpointNames = ['Basecamp', 'Pos 1 - Gerbang', 'Pos 2 - Kawah', 'Pondok Saladah', 'Hutan Mati'];
+        $checkpointNames = [
+            'Pos 1 - Main Gate', 
+            'Pos 2 - Parking', 
+            'Pos 3 - Security', 
+            'Pos 4 - Trailhead', 
+            'Pos 5 - Asphalt End', 
+            'Pos 6 - Crater', 
+            'Pos 7 - Junction', 
+            'Pos 8 - Ghober Hoet', 
+            'Pos 9 - Dead Forest', 
+            'Pos 10 - Pondok Saladah'
+        ];
         foreach ($checkpointNames as $index => $name) {
             $checkpoints[] = Checkpoint::firstOrCreate(
                 ['mountain_id' => $mountain->id, 'name' => $name],
-                ['slug' => Str::slug('Papandayan ' . $name), 'order' => $index]
+                ['slug' => Str::slug('Papandayan ' . $name), 'order' => $index + 1]
             );
         }
 

@@ -1,5 +1,5 @@
 import AppLayout from '@/layouts/app-layout';
-import { Head, useForm } from '@inertiajs/react';
+import { Head, useForm, router } from '@inertiajs/react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -34,6 +34,7 @@ interface DashboardProps {
         emergency_contact: string;
         duration_hours: number;
         safety_status: 'normal' | 'warning' | 'critical';
+        evacuation_status: string | null;
         planned_descent_date?: string; 
     }>;
 }
@@ -59,6 +60,16 @@ export default function ForestryDashboard({ crowdStats, chartData, todayStats, a
         if (status === 'Critical') return 'bg-red-500 hover:bg-red-600';
         if (status === 'Warning') return 'bg-yellow-500 hover:bg-yellow-600';
         return 'bg-green-500 hover:bg-green-600';
+    };
+
+    const handleEvacuation = (id: number, status: 'searching' | 'rescued') => {
+        const message = status === 'searching' 
+            ? "WARNING: Are you sure you want to declare this hiker as MISSING and initiate a SAR operation?"
+            : "SUCCESS: Confirm that this hiker has been RESCUED?";
+            
+        if (confirm(message)) {
+            router.put(`/forestry/hikes/${id}/evacuation`, { status });
+        }
     };
 
     return (
@@ -172,23 +183,45 @@ export default function ForestryDashboard({ crowdStats, chartData, todayStats, a
                                                     <td className="px-4 py-3">{hike.hiker_name}</td>
                                                     <td className="px-4 py-3">{hike.last_position}</td>
                                                     <td className="px-4 py-3">{hike.last_update}</td>
-                                                    <td className="px-4 py-3">
+                                                    <td className="px-4 py-3 whitespace-nowrap">
                                                         {hike.safety_status === 'critical' ? (
                                                             <div className="flex items-center gap-2 text-red-600 font-bold animate-pulse">
-                                                                <span>OVERDUE ({hike.duration_hours}h)</span>
+                                                                <span>OVERDUE ({Math.floor(hike.duration_hours)}h)</span>
                                                             </div>
                                                         ) : hike.safety_status === 'warning' ? (
-                                                            <span className="bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-0.5 rounded">
-                                                                Warning ({hike.duration_hours}h)
+                                                            <span className="bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-0.5 rounded whitespace-nowrap inline-block">
+                                                                Warning ({Math.floor(hike.duration_hours)}h)
                                                             </span>
                                                         ) : (
-                                                            <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">
-                                                                Normal ({hike.duration_hours}h)
+                                                            <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded whitespace-nowrap inline-block">
+                                                                Normal ({Math.floor(hike.duration_hours)}h)
                                                             </span>
                                                         )}
                                                     </td>
                                                     <td className="px-4 py-3 text-right">
-                                                        <div className="flex justify-end gap-2">
+                                                        <div className="flex justify-end gap-2 items-center">
+
+                                                            {hike.evacuation_status === 'searching' && (
+                                                                <Button 
+                                                                    variant="default" 
+                                                                    className="bg-green-600 hover:bg-green-700 text-white"
+                                                                    size="sm" 
+                                                                    onClick={() => handleEvacuation(hike.id, 'rescued')}
+                                                                >
+                                                                    Mark as Rescued
+                                                                </Button>
+                                                            )}
+
+                                                            {hike.safety_status === 'critical' && hike.evacuation_status !== 'searching' && (
+                                                                <Button 
+                                                                    variant="destructive" 
+                                                                    size="sm" 
+                                                                    onClick={() => handleEvacuation(hike.id, 'searching')}
+                                                                >
+                                                                    Declare Missing
+                                                                </Button>
+                                                            )}
+
                                                             <Button 
                                                                 variant={hike.safety_status === 'critical' ? "destructive" : "ghost"} 
                                                                 size="sm" 
@@ -252,7 +285,7 @@ export default function ForestryDashboard({ crowdStats, chartData, todayStats, a
                             <CardHeader className="pb-2">
                                 <CardTitle className="text-sm font-medium flex items-center gap-2">
                                     <CalendarIcon className="w-4 h-4 text-orange-500" /> 
-                                    Schedule Reference
+                                    Calendar
                                 </CardTitle>
                             </CardHeader>
                             <CardContent className="flex justify-center pb-6">
