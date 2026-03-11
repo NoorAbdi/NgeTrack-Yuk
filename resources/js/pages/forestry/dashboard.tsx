@@ -307,10 +307,22 @@ export default function ForestryDashboard({ crowdStats, chartData, todayStats, a
 
 function ExtendPermitForm({ hike }: { hike: any }) {
     
+    const initialDate = hike.planned_descent_date ? hike.planned_descent_date.substring(0, 10) : new Date().toISOString().substring(0, 10);
+    const initialHour = hike.planned_descent_date ? hike.planned_descent_date.substring(11, 13) : "12";
+    const initialMinute = hike.planned_descent_date ? hike.planned_descent_date.substring(14, 16) : "00";
+
+    const [selectedDate, setSelectedDate] = useState(initialDate);
+    const [selectedHour, setSelectedHour] = useState(initialHour);
+    const [selectedMinute, setSelectedMinute] = useState(initialMinute);
+
     const { data, setData, put, processing, errors } = useForm({
-        new_descent_date: hike.planned_descent_date ? hike.planned_descent_date.substring(0, 16) : new Date().toISOString().substring(0, 16),
+        new_descent_date: `${initialDate}T${initialHour}:${initialMinute}`,
         admin_notes: '',
     });
+
+    useEffect(() => {
+        setData('new_descent_date', `${selectedDate}T${selectedHour}:${selectedMinute}`);
+    }, [selectedDate, selectedHour, selectedMinute]);
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -320,15 +332,39 @@ function ExtendPermitForm({ hike }: { hike: any }) {
     return (
         <form onSubmit={submit} className="space-y-4 pt-4">
             <div>
-                <Label htmlFor={`new_descent_date_${hike.id}`}>New Descent Date & Time</Label>
-                <Input
-                    id={`new_descent_date_${hike.id}`}
-                    type="datetime-local"
-                    className="mt-1"
-                    value={data.new_descent_date}
-                    onChange={(e) => setData('new_descent_date', e.target.value)}
-                    required
-                />
+                <Label>New Descent Date & Time (24h Format)</Label>
+                <div className="flex gap-2 mt-1">
+                    <Input
+                        type="date"
+                        className="flex-1"
+                        value={selectedDate}
+                        onChange={(e) => setSelectedDate(e.target.value)}
+                        required
+                    />
+                    
+                    <select
+                        className="flex h-10 w-20 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+                        value={selectedHour}
+                        onChange={(e) => setSelectedHour(e.target.value)}
+                    >
+                        {Array.from({ length: 24 }).map((_, i) => {
+                            const hour = i.toString().padStart(2, '0');
+                            return <option key={hour} value={hour}>{hour}</option>;
+                        })}
+                    </select>
+
+                    <span className="flex items-center text-lg font-bold">:</span>
+
+                    <select
+                        className="flex h-10 w-20 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+                        value={selectedMinute}
+                        onChange={(e) => setSelectedMinute(e.target.value)}
+                    >
+                        {['00', '15', '30', '45'].map((minute) => (
+                            <option key={minute} value={minute}>{minute}</option>
+                        ))}
+                    </select>
+                </div>
                 {errors.new_descent_date && <p className="text-red-500 text-xs mt-1">{errors.new_descent_date}</p>}
             </div>
 

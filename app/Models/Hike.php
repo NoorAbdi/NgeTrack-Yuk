@@ -18,6 +18,12 @@ class Hike extends Model
         'admin_notes',
     ];
 
+    protected $casts = [
+        'planned_ascent_date' => 'datetime',
+        'planned_descent_date' => 'datetime',
+        'completed_at' => 'datetime',
+    ];
+
     public function user()
     {
         return $this->belongsTo(User::class);

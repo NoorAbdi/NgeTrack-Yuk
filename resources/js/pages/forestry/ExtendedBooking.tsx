@@ -6,15 +6,36 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import InputError from '@/components/input-error';
+import { useState, useEffect } from 'react';
 
 export default function ExtendedBooking({ mountains }: { mountains: any[] }) {
+    
+    const todayDate = new Date().toISOString().substring(0, 10);
+    const tomorrowDate = new Date(Date.now() + 86400000).toISOString().substring(0, 10);
+
+    const [ascentDate, setAscentDate] = useState(todayDate);
+    const [ascentHour, setAscentHour] = useState("08");
+    const [ascentMinute, setAscentMinute] = useState("00");
+
+    const [descentDate, setDescentDate] = useState(tomorrowDate);
+    const [descentHour, setDescentHour] = useState("14");
+    const [descentMinute, setDescentMinute] = useState("00");
+
     const { data, setData, post, processing, errors } = useForm({
         email: '',
         mountain_id: mountains.length > 0 ? mountains[0].id : '',
-        planned_ascent_date: '',
-        planned_descent_date: '',
+        planned_ascent_date: `${todayDate}T08:00`,
+        planned_descent_date: `${tomorrowDate}T14:00`,
         admin_notes: '',
     });
+
+    useEffect(() => {
+        setData('planned_ascent_date', `${ascentDate}T${ascentHour}:${ascentMinute}`);
+    }, [ascentDate, ascentHour, ascentMinute]);
+
+    useEffect(() => {
+        setData('planned_descent_date', `${descentDate}T${descentHour}:${descentMinute}`);
+    }, [descentDate, descentHour, descentMinute]);
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -43,7 +64,6 @@ export default function ExtendedBooking({ mountains }: { mountains: any[] }) {
                     
                     <CardContent className="pt-6">
                         <form onSubmit={submit} className="space-y-6">
-                            {/* Email Pendaki */}
                             <div className="space-y-2">
                                 <Label htmlFor="email">Hiker's Email Address</Label>
                                 <Input
@@ -80,34 +100,47 @@ export default function ExtendedBooking({ mountains }: { mountains: any[] }) {
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                {/* Tanggal Naik (Diubah menjadi datetime-local) */}
                                 <div className="space-y-2">
-                                    <Label htmlFor="planned_ascent_date">Ascent Date</Label>
-                                    <Input
-                                        id="planned_ascent_date"
-                                        type="datetime-local" 
-                                        value={data.planned_ascent_date}
-                                        onChange={(e) => setData('planned_ascent_date', e.target.value)}
-                                        required
-                                    />
+                                    <Label>Ascent Date & Time</Label>
+                                    <div className="flex gap-2 mt-1">
+                                        <Input type="date" className="flex-1 px-2" value={ascentDate} onChange={(e) => setAscentDate(e.target.value)} required />
+                                        <select className="h-10 w-16 rounded-md border border-gray-300 bg-white px-2 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900" value={ascentHour} onChange={(e) => setAscentHour(e.target.value)}>
+                                            {Array.from({ length: 24 }).map((_, i) => {
+                                                const hour = i.toString().padStart(2, '0');
+                                                return <option key={hour} value={hour}>{hour}</option>;
+                                            })}
+                                        </select>
+                                        <span className="flex items-center text-lg font-bold">:</span>
+                                        <select className="h-10 w-16 rounded-md border border-gray-300 bg-white px-2 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900" value={ascentMinute} onChange={(e) => setAscentMinute(e.target.value)}>
+                                            {['00', '15', '30', '45'].map((minute) => (
+                                                <option key={minute} value={minute}>{minute}</option>
+                                            ))}
+                                        </select>
+                                    </div>
                                     <InputError message={errors.planned_ascent_date} className="mt-2" />
                                 </div>
 
-                                {/* Tanggal Turun Extended (Diubah menjadi datetime-local) */}
                                 <div className="space-y-2">
-                                    <Label htmlFor="planned_descent_date">Descent Date (Extended)</Label>
-                                    <Input
-                                        id="planned_descent_date"
-                                        type="datetime-local"
-                                        value={data.planned_descent_date}
-                                        onChange={(e) => setData('planned_descent_date', e.target.value)}
-                                        required
-                                    />
+                                    <Label>Descent Date & Time</Label>
+                                    <div className="flex gap-2 mt-1">
+                                        <Input type="date" className="flex-1 px-2" value={descentDate} onChange={(e) => setDescentDate(e.target.value)} required />
+                                        <select className="h-10 w-16 rounded-md border border-gray-300 bg-white px-2 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900" value={descentHour} onChange={(e) => setDescentHour(e.target.value)}>
+                                            {Array.from({ length: 24 }).map((_, i) => {
+                                                const hour = i.toString().padStart(2, '0');
+                                                return <option key={hour} value={hour}>{hour}</option>;
+                                            })}
+                                        </select>
+                                        <span className="flex items-center text-lg font-bold">:</span>
+                                        <select className="h-10 w-16 rounded-md border border-gray-300 bg-white px-2 py-2 text-sm dark:border-zinc-700 dark:bg-zinc-900" value={descentMinute} onChange={(e) => setDescentMinute(e.target.value)}>
+                                            {['00', '15', '30', '45'].map((minute) => (
+                                                <option key={minute} value={minute}>{minute}</option>
+                                            ))}
+                                        </select>
+                                    </div>
                                     <InputError message={errors.planned_descent_date} className="mt-2" />
                                 </div>
                             </div>
 
-                            {/* Catatan Admin */}
                             <div className="space-y-2">
                                 <Label htmlFor="admin_notes">Permit Reason / Activity Notes</Label>
                                 <Textarea
