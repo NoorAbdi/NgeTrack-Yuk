@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Hike;
 use App\Models\Mountain;
 use App\Models\User;
+use App\Models\AlertSetting;
 use App\Services\HikeRegistrationService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -31,21 +32,27 @@ class ForestryDashboardController extends Controller
             'completed' => Hike::whereDate('completed_at', Carbon::today())->where('status', 'completed')->count(),
         ];
 
+        $alertSetting = AlertSetting::first();
+        $warningThreshold = $alertSetting ? $alertSetting->warning_threshold_hours : 6;
+        $criticalThreshold = $alertSetting ? $alertSetting->critical_threshold_hours : 8;
+
         $activeHikers = Hike::with(['user', 'lastLog.checkpoint'])
             ->where('status', 'active')
             ->orderBy('created_at', 'asc')
             ->get()
-            ->map(function ($hike) {
+            ->map(function ($hike) use ($warningThreshold, $criticalThreshold) {
                 
                 $now = Carbon::now();
                 $durationHours = $hike->created_at->diffInHours($now);
                 $descentDeadline = Carbon::parse($hike->planned_descent_date);
                 $safetyStatus = 'normal';
+                $warningTime = $descentDeadline->copy()->subHours($warningThreshold);
+                $criticalTime = $descentDeadline->copy()->addHours($criticalThreshold);
                 
-                if ($now->greaterThan($descentDeadline)) {
+                if ($now->greaterThanOrEqualTo($criticalTime)) {
                     $safetyStatus = 'critical'; 
                 } 
-                elseif ($now->greaterThan($descentDeadline->copy()->subHours(3))) {
+                elseif ($now->greaterThanOrEqualTo($warningTime)) {
                     $safetyStatus = 'warning';
                 }
 

@@ -10,11 +10,8 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
-import { index as adminCheckpointsIndex } from '@/routes/admin/checkpoints/index';
 import { Link, usePage } from '@inertiajs/react';
-import { LayoutGrid, Package, QrCode } from 'lucide-react';
-import { MapPin, LayoutDashboard, Users } from 'lucide-react';
-import { CalendarClock } from 'lucide-react';
+import { LayoutGrid, Package, QrCode, Users, CalendarClock, Settings } from 'lucide-react';
 import AppLogo from './app-logo';
 import { ModeToggle } from '@/components/mode-toggle';
 
@@ -36,7 +33,7 @@ export function AppSidebar() {
 
     if (user.role === 'admin') {
         mainNavItems.push({
-            title: 'Manage checkpoints',
+            title: 'Manage Checkpoints',
             href: '/admin/checkpoints',
             icon: Package,
         });
@@ -45,6 +42,12 @@ export function AppSidebar() {
             title: 'Manage Officers',
             href: '/admin/forestry-officers',
             icon: Users,
+        });
+
+        mainNavItems.push({
+            title: 'Manage Alert System',
+            href: '/admin/alert-settings',
+            icon: Settings,
         });
     } 
 

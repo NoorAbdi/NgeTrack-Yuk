@@ -1,0 +1,13 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class AlertSetting extends Model
+{
+    protected $fillable = [
+        'warning_threshold_hours',
+        'critical_threshold_hours',
+    ];
+}

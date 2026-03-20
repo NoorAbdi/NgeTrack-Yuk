@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use App\Models\Hike;
+use App\Models\AlertSetting;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -17,19 +18,20 @@ class CheckHikerSafety extends Command
     {
         $this->info('Checking hiker safety status...');
 
+        $alertSetting = AlertSetting::first();
+        $criticalThreshold = $alertSetting ? $alertSetting->critical_threshold_hours : 8;
         $activeHikes = Hike::where('status', 'active')->with(['user', 'lastLog.checkpoint'])->get();
 
         foreach ($activeHikes as $hike) {
             $now = Carbon::now();
-            
-            $descentDeadline = Carbon::parse($hike->planned_descent_date);
-            
-            $isCritical = $now->greaterThan($descentDeadline);
+            $descentDate = Carbon::parse($hike->planned_descent_date);
+            $criticalTime = $descentDate->copy()->addHours($criticalThreshold);
+            $isCritical = $now->greaterThanOrEqualTo($criticalTime);
 
             if ($isCritical) {
                 $lastSent = $hike->last_alert_sent_at ? Carbon::parse($hike->last_alert_sent_at) : null;
                 
-                if (!$lastSent || $now->diffInHours($lastSent) >= 30) {
+                if (!$lastSent || $now->diffInMinutes($lastSent) >= 30) {
                     $this->sendTelegramAlert($hike);
                 }
             }

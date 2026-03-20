@@ -19,7 +19,7 @@ class DummyHikerSeeder extends Seeder
     {
         $faker = Faker::create('id_ID');
 
-        $this->command->info('Memulai pembuatan 100 Dummy Data Pendaki...');
+        $this->command->info('Starting the creation of 100 Dummy Hiker Data...');
 
         $mountain = Mountain::firstOrCreate(
             ['name' => 'Gunung Papandayan'],
@@ -64,14 +64,18 @@ class DummyHikerSeeder extends Seeder
             ]);
 
             if ($isActive) {
-                $hoursAgo = $faker->randomElement([
-                    $faker->numberBetween(1, 4),   // NORMAL
-                    $faker->numberBetween(6, 9),   // WARNING 
-                    $faker->numberBetween(11, 24)  // CRITICAL
-                ]);
-                $createdAt = Carbon::now()->subHours($hoursAgo);
-                
-                $plannedDescent = Carbon::now()->addDays($faker->numberBetween(0, 2))->setHour(14); 
+                $statusScenario = $faker->randomElement(['normal', 'normal', 'warning', 'critical']); 
+
+                if ($statusScenario === 'normal') {
+                    $plannedDescent = Carbon::now()->addHours($faker->numberBetween(5, 48));
+                    $createdAt = Carbon::now()->subHours($faker->numberBetween(1, 10));
+                } elseif ($statusScenario === 'warning') {
+                    $plannedDescent = Carbon::now()->addMinutes($faker->numberBetween(30, 150));
+                    $createdAt = Carbon::now()->subHours($faker->numberBetween(5, 12));
+                } else {
+                    $plannedDescent = Carbon::now()->subHours($faker->numberBetween(1, 12));
+                    $createdAt = $plannedDescent->copy()->subHours($faker->numberBetween(10, 48)); 
+                }
             } else {
                 $createdAt = Carbon::now()->subDays($faker->numberBetween(1, 6));
                 $plannedDescent = $createdAt->copy()->addDays(1);
@@ -100,6 +104,6 @@ class DummyHikerSeeder extends Seeder
             }
         }
 
-        $this->command->info('Berhasil! 100 data pendaki dummy telah ditambahkan.');
+        $this->command->info('Success! 100 dummy hiker data has been added.');
     }
 }

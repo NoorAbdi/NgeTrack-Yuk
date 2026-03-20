@@ -10,6 +10,8 @@ use App\Http\Controllers\Admin\ForestryOfficerController;
 use App\Http\Controllers\CheckpointController as PublicCheckpointController;
 use App\Http\Controllers\HikerDashboardController;
 use App\Http\Controllers\ForestryDashboardController;
+use App\Http\Controllers\AdminAlertSettingController;
+use App\Models\AlertSetting;
 
 Route::get('/', function () {
     return Inertia::render('Welcome', [
@@ -33,6 +35,8 @@ Route::middleware(['auth', 'verified', 'is_admin'])->prefix('admin')->name('admi
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
     Route::resource('checkpoints', AdminCheckpointController::class);
     Route::resource('forestry-officers', ForestryOfficerController::class)->except(['show', 'edit', 'update']);
+    Route::get('/alert-settings', [AdminAlertSettingController::class, 'edit'])->name('admin.alert-settings.edit');
+    Route::put('/alert-settings', [AdminAlertSettingController::class, 'update'])->name('admin.alert-settings.update');
 });
 
 Route::middleware(['auth', 'verified', 'is_admin'])->prefix('forestry')->name('forestry.')->group(function () {
