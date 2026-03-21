@@ -128,18 +128,31 @@ class ForestryDashboardController extends Controller
         return Response::stream($callback, 200, $headers);
     }
 
-    public function printReport()
+    public function printReport(\Illuminate\Http\Request $request)
     {
+        $targetDate = $request->query('date', Carbon::today()->format('Y-m-d'));
+        $parsedDate = Carbon::parse($targetDate);
+
         $data = [
-            'date' => Carbon::now()->format('d F Y'),
-            'total_hikers' => Hike::count(),
-            'active_hikers' => Hike::where('status', 'active')->count(),
-            'completed_hikers' => Hike::where('status', 'completed')->count(),
+            'report_date' => $parsedDate->format('d F Y'),
+            
+            'total_hikers' => Hike::whereDate('created_at', $targetDate)->count(),
+            
+            'active_hikers' => Hike::where('status', 'active')->count(), 
+            
+            'completed_hikers' => Hike::where('status', 'completed')
+                                    ->whereDate('completed_at', $targetDate)
+                                    ->count(),
+            
             'missing_hikers' => Hike::where('evacuation_status', 'searching')->count(),
-            'rescued_hikers' => Hike::where('evacuation_status', 'rescued')->count(),
+            'rescued_hikers' => Hike::where('evacuation_status', 'rescued')
+                                    ->whereDate('updated_at', $targetDate)
+                                    ->count(),
+            
             'recent_hikes' => Hike::with(['user', 'lastLog.checkpoint'])
-                                ->orderBy('created_at', 'desc')
-                                ->limit(50) 
+                                ->whereDate('created_at', $targetDate)
+                                ->orWhereDate('updated_at', $targetDate)
+                                ->orderBy('updated_at', 'asc')
                                 ->get()
         ];
 

@@ -3,7 +3,7 @@ import { Head, useForm, router } from '@inertiajs/react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -42,6 +42,7 @@ interface DashboardProps {
 export default function ForestryDashboard({ crowdStats, chartData, todayStats, activeHikersList }: DashboardProps) {
     
     const [currentTime, setCurrentTime] = useState(new Date());
+    const [reportDate, setReportDate] = useState(new Date().toISOString().substring(0, 10));
 
     useEffect(() => {
         const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -53,7 +54,7 @@ export default function ForestryDashboard({ crowdStats, chartData, todayStats, a
     };
 
     const handlePrintReport = () => {
-        window.open('/forestry/report/print', '_blank');
+        window.open(`/forestry/report?date=${reportDate}`, '_blank');
     };
 
     const getCrowdColor = (status: string) => {
@@ -95,9 +96,40 @@ export default function ForestryDashboard({ crowdStats, chartData, todayStats, a
                         <Button variant="outline" size="sm" onClick={handleDownloadExcel}>
                             Download Excel
                         </Button>
-                        <Button variant="default" size="sm" onClick={handlePrintReport}>
-                            Export PDF Report
-                        </Button>
+
+                        <Dialog>
+                            <DialogTrigger asChild>
+                                <Button size="sm" className="bg-gray-900 text-white hover:bg-gray-800 dark:bg-white dark:text-black">
+                                    Export PDF Report
+                                </Button>
+                            </DialogTrigger>
+                            <DialogContent className="sm:max-w-md">
+                                <DialogHeader>
+                                    <DialogTitle>Download Daily Report</DialogTitle>
+                                    <DialogDescription>
+                                        Select a specific date to generate the historical activity report.
+                                    </DialogDescription>
+                                </DialogHeader>
+                                <div className="py-4">
+                                    <Label htmlFor="report_date" className="font-semibold">Report Date</Label>
+                                    <Input 
+                                        id="report_date"
+                                        type="date" 
+                                        value={reportDate} 
+                                        onChange={(e) => setReportDate(e.target.value)} 
+                                        className="mt-2"
+                                    />
+                                </div>
+                                <DialogFooter className="sm:justify-end">
+                                    <Button 
+                                        onClick={handlePrintReport} 
+                                        className="bg-orange-600 hover:bg-orange-700 text-white"
+                                    >
+                                        Generate PDF
+                                    </Button>
+                                </DialogFooter>
+                            </DialogContent>
+                        </Dialog>
                     </div>
                 </div>
 
@@ -154,7 +186,7 @@ export default function ForestryDashboard({ crowdStats, chartData, todayStats, a
                 {/* Bagian 3: Tabel & Panel Waktu */}
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
                     
-                    {/* TABEL HIKER (Mengambil 3/4 layar di perangkat besar) */}
+                    {/* TABEL HIKER */}
                     <Card className="lg:col-span-3">
                         <CardHeader>
                             <CardTitle>Active Hikers Monitoring (Safety Alert System)</CardTitle>
@@ -185,7 +217,7 @@ export default function ForestryDashboard({ crowdStats, chartData, todayStats, a
                                                     <td className="px-4 py-3">{hike.last_update}</td>
                                                     <td className="px-4 py-3 whitespace-nowrap">
                                                         {hike.safety_status === 'critical' ? (
-                                                            <div className="flex items-center gap-2 text-red-600 font-bold animate-pulse">
+                                                            <div className="inline-flex items-center gap-2 text-red-600 font-bold animate-pulse">
                                                                 <span>OVERDUE ({Math.floor(hike.duration_hours)}h)</span>
                                                             </div>
                                                         ) : hike.safety_status === 'warning' ? (
@@ -262,7 +294,7 @@ export default function ForestryDashboard({ crowdStats, chartData, todayStats, a
                         </CardContent>
                     </Card>
 
-                    {/* PANEL WAKTU & KALENDER (Mengambil 1/4 layar di sisi kanan) */}
+                    {/* PANEL WAKTU & KALENDER */}
                     <div className="flex flex-col gap-4">
                         
                         {/* Jam Digital Real-time */}
@@ -270,7 +302,6 @@ export default function ForestryDashboard({ crowdStats, chartData, todayStats, a
                             <div className="absolute top-0 left-0 w-full h-1.5 bg-orange-500"></div>
                             <CardContent className="p-6 flex flex-col items-center justify-center text-center">
                                 <Clock className="w-8 h-8 text-orange-500 mb-3" />
-                                {/* tabular-nums mencegah angka melompat-lompat saat detik berubah */}
                                 <div className="text-4xl lg:text-3xl xl:text-4xl font-mono font-bold tracking-widest text-orange-600 dark:text-orange-400 tabular-nums">
                                     {currentTime.toLocaleTimeString('en-US', { hour12: false })}
                                 </div>
