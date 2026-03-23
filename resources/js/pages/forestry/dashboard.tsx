@@ -9,7 +9,13 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Calendar } from '@/components/ui/calendar';
 import { Clock, Calendar as CalendarIcon } from 'lucide-react';
+import { Radio } from 'lucide-react';
 import { useState, useEffect } from 'react';
+
+interface Checkpoint {
+    id: number;
+    name: string;
+}
 
 interface DashboardProps {
     crowdStats: {
@@ -37,9 +43,10 @@ interface DashboardProps {
         evacuation_status: string | null;
         planned_descent_date?: string; 
     }>;
+    checkpoints: Checkpoint[];
 }
 
-export default function ForestryDashboard({ crowdStats, chartData, todayStats, activeHikersList }: DashboardProps) {
+export default function ForestryDashboard({ crowdStats, chartData, todayStats, activeHikersList, checkpoints }: DashboardProps) {
     
     const [currentTime, setCurrentTime] = useState(new Date());
     const [reportDate, setReportDate] = useState(new Date().toISOString().substring(0, 10));
@@ -262,6 +269,25 @@ export default function ForestryDashboard({ crowdStats, chartData, todayStats, a
                                                                 {hike.safety_status === 'critical' ? 'SOS ALERT' : 'Contact'}
                                                             </Button>
 
+                                                            {/* Dialog Manual HT Check-in */}
+                                                            <Dialog>
+                                                                <DialogTrigger asChild>
+                                                                    <Button variant="outline" size="sm" className="text-blue-600 border-blue-200 hover:bg-blue-50">
+                                                                        <Radio className="w-4 h-4 mr-1" />
+                                                                        HT Update
+                                                                    </Button>
+                                                                </DialogTrigger>
+                                                                <DialogContent className="sm:max-w-md">
+                                                                    <DialogHeader>
+                                                                        <DialogTitle>Manual HT Check-in</DialogTitle>
+                                                                        <DialogDescription>
+                                                                            Update the position for <b>{hike.hiker_name}</b> manually based on Radio/HT reports.
+                                                                        </DialogDescription>
+                                                                    </DialogHeader>
+                                                                    <ManualCheckinForm hike={hike} checkpoints={checkpoints} />
+                                                                </DialogContent>
+                                                            </Dialog>
+
                                                             <Dialog>
                                                                 <DialogTrigger asChild>
                                                                     <Button variant="outline" size="sm" className="text-orange-600 border-orange-200 hover:bg-orange-50">
@@ -415,6 +441,46 @@ function ExtendPermitForm({ hike }: { hike: any }) {
             <div className="flex justify-end pt-4">
                 <Button type="submit" disabled={processing} className="bg-orange-600 hover:bg-orange-700 text-white">
                     {processing ? 'Updating...' : 'Save Changes'}
+                </Button>
+            </div>
+        </form>
+    );
+}
+
+function ManualCheckinForm({ hike, checkpoints }: { hike: any, checkpoints: any[] }) {
+    const { data, setData, post, processing, errors } = useForm({
+        checkpoint_id: '',
+    });
+
+    const submit = (e: React.FormEvent) => {
+        e.preventDefault();
+        post(`/forestry/hikes/${hike.id}/manual-checkin`);
+    };
+
+    return (
+        <form onSubmit={submit} className="space-y-4 pt-4">
+            <div>
+                <Label htmlFor={`checkpoint_${hike.id}`}>Reported Position (Checkpoint)</Label>
+                <select
+                    id={`checkpoint_${hike.id}`}
+                    className="flex h-10 w-full mt-1 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-zinc-700 dark:bg-zinc-900"
+                    value={data.checkpoint_id}
+                    onChange={(e) => setData('checkpoint_id', e.target.value)}
+                    required
+                >
+                    <option value="" disabled>-- Select Reported Pos --</option>
+                    {checkpoints.map((cp) => (
+                        <option key={cp.id} value={cp.id}>
+                            {cp.name}
+                        </option>
+                    ))}
+                </select>
+                {errors.checkpoint_id && <p className="text-red-500 text-xs mt-1">{errors.checkpoint_id}</p>}
+            </div>
+
+            <div className="flex justify-end pt-4">
+                <Button type="submit" disabled={processing || !data.checkpoint_id} className="bg-blue-600 hover:bg-blue-700 text-white">
+                    {processing ? 'Saving...' : 'Confirm Position'}
                 </Button>
             </div>
         </form>

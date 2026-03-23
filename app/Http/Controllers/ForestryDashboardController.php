@@ -6,6 +6,8 @@ use App\Models\Hike;
 use App\Models\Mountain;
 use App\Models\User;
 use App\Models\AlertSetting;
+use App\Models\Checkpoint;
+use App\Models\CheckpointLog;
 use App\Services\HikeRegistrationService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -82,6 +84,7 @@ class ForestryDashboardController extends Controller
             'chartData' => $hikesLast7Days,
             'todayStats' => $todayStats,
             'activeHikersList' => $activeHikers,
+            'checkpoints' => $checkpoints,
         ]);
     }
 
@@ -200,6 +203,29 @@ class ForestryDashboardController extends Controller
             ]);
             return redirect()->back()->with('success', 'SAR Operation Initiated. Hiker marked as MISSING.');
         }
+    }
+
+    public function manualCheckin(Request $request, Hike $hike)
+    {
+        $request->validate([
+            'checkpoint_id' => 'required|exists:checkpoints,id',
+        ]);
+
+        CheckpointLog::create([
+            'user_id' => $hike->user_id,
+            'hike_id' => $hike->id,
+            'checkpoint_id' => $request->checkpoint_id,
+            'scanned_at' => now(),
+        ]);
+
+        $checkpointName = Checkpoint::find($request->checkpoint_id)->name;
+        $note = "[" . now()->format('Y-m-d H:i') . "] MANUAL HT CHECK-IN at " . $checkpointName . " by " . auth()->user()->name;
+        
+        $hike->update([
+            'admin_notes' => $hike->admin_notes ? $hike->admin_notes . "\n" . $note : $note,
+        ]);
+
+        return redirect()->back()->with('success', 'Manual Check-in via HT successful.');
     }
 
     public function createBooking()

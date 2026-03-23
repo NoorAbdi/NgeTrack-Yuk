@@ -48,6 +48,7 @@ Route::middleware(['auth', 'verified', 'is_admin'])->prefix('forestry')->name('f
         Route::get('/extended-booking', [ForestryDashboardController::class, 'createBooking'])->name('booking.create');
         Route::post('/extended-booking', [ForestryDashboardController::class, 'storeBooking'])->name('booking.store');
         Route::get('/report', [ForestryDashboardController::class, 'printReport'])->name('forestry.report');
+        Route::post('/hikes/{hike}/manual-checkin', [ForestryDashboardController::class, 'manualCheckin'])->name('forestry.hikes.manual-checkin');
     });
 
 require __DIR__.'/settings.php'; 
