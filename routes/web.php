@@ -23,17 +23,19 @@ Route::get('/', function () {
 })->name('home');
 
 Route::get('/dashboard', [HikerDashboardController::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
-
 Route::middleware('auth')->group(function () {
     Route::get('/register-hike', [HikeRegistrationController::class, 'create'])->name('hike.create');
     Route::post('/register-hike', [HikeRegistrationController::class, 'store'])->name('hike.store');
     Route::get('/checkpoint/{slug}', [PublicCheckpointController::class, 'show'])->name('checkpoint.show');
-    Route::post('/checkpoint/scan', [PublicCheckpointController::class, 'store'])->name('checkpoint.store');
+    Route::post('/checkpoint/scan', [PublicCheckpointController::class, 'store'])->name('checkpoint.store')->middleware('throttle:10,1');
 });
 
 Route::middleware(['auth', 'verified', 'is_admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
-    Route::resource('checkpoints', AdminCheckpointController::class);
+    Route::get('/checkpoints', [AdminCheckpointController::class, 'index'])->name('checkpoints.index');
+    Route::post('/checkpoints', [AdminCheckpointController::class, 'store'])->name('checkpoints.store')->middleware('throttle:30,1');
+    Route::put('/checkpoints/{checkpoint}', [AdminCheckpointController::class, 'update'])->name('checkpoints.update')->middleware('throttle:30,1');
+    Route::delete('/checkpoints/{checkpoint}', [AdminCheckpointController::class, 'destroy'])->name('checkpoints.destroy')->middleware('throttle:20,1');
     Route::resource('forestry-officers', ForestryOfficerController::class)->except(['show', 'edit', 'update']);
     Route::get('/alert-settings', [AdminAlertSettingController::class, 'edit'])->name('admin.alert-settings.edit');
     Route::put('/alert-settings', [AdminAlertSettingController::class, 'update'])->name('admin.alert-settings.update');
@@ -43,12 +45,12 @@ Route::middleware(['auth', 'verified', 'is_admin'])->prefix('forestry')->name('f
         Route::get('/dashboard', [ForestryDashboardController::class, 'index'])->name('dashboard');
         Route::get('/export/csv', [ForestryDashboardController::class, 'downloadCsv'])->name('export.csv');
         Route::get('/report/print', [ForestryDashboardController::class, 'printReport'])->name('report.print');
-        Route::put('/hikes/{hike}/extend', [ForestryDashboardController::class, 'extendPermit'])->name('hikes.extend');
-        Route::put('/hikes/{hike}/evacuation', [ForestryDashboardController::class, 'updateEvacuation'])->name('hikes.evacuation');
+        Route::put('/hikes/{hike}/extend', [ForestryDashboardController::class, 'extendPermit'])->name('hikes.extend')->middleware('throttle:10,1');
+        Route::put('/hikes/{hike}/evacuation', [ForestryDashboardController::class, 'updateEvacuation'])->name('hikes.evacuation')->middleware('throttle:5,1');
         Route::get('/extended-booking', [ForestryDashboardController::class, 'createBooking'])->name('booking.create');
         Route::post('/extended-booking', [ForestryDashboardController::class, 'storeBooking'])->name('booking.store');
         Route::get('/report', [ForestryDashboardController::class, 'printReport'])->name('forestry.report');
-        Route::post('/hikes/{hike}/manual-checkin', [ForestryDashboardController::class, 'manualCheckin'])->name('forestry.hikes.manual-checkin');
+        Route::post('/hikes/{hike}/manual-checkin', [ForestryDashboardController::class, 'manualCheckin'])->name('forestry.hikes.manual-checkin')->middleware('throttle:60,1');
     });
 
-require __DIR__.'/settings.php'; 
+require __DIR__.'/settings.php';
