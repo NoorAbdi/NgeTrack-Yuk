@@ -74,6 +74,8 @@ class ForestryDashboardController extends Controller
                 ];
             });
 
+            $checkpoints = Checkpoint::orderBy('name', 'asc')->get();
+
         return Inertia::render('forestry/dashboard', [
             'crowdStats' => [
                 'active' => $activeHikersCount,

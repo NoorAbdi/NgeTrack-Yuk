@@ -59,14 +59,6 @@ export function AppSidebar() {
         });
     } 
 
-    else {
-        mainNavItems.push({
-            title: 'Scan QR (Demo)',
-            href: '/checkpoint/papandayan-pos-1-main-gate',
-            icon: QrCode,
-        });
-    }
-
     return (
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader>
