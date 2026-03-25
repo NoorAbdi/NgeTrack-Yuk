@@ -80,10 +80,17 @@ export default function Dashboard({ currentHike, badges = [], hikeHistory = [] }
     };
 
     const submitCheckIn = () => {
+        if (!scannedCheckpoint || !scannedCheckpoint.id) {
+            console.error("Attempted to check in without a valid checkpoint.");
+            return; 
+        }
+
         setIsCheckingIn(true);
         
+        const checkpointIdToSubmit = scannedCheckpoint.id;
+        
         router.post('/checkpoint/scan', { 
-            checkpoint_id: scannedCheckpoint.id,
+            checkpoint_id: checkpointIdToSubmit,
             hike_registration_id: currentHike?.hike_registration_id
         }, {
             preserveState: true,
