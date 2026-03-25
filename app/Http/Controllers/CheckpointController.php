@@ -12,23 +12,21 @@ use Inertia\Inertia;
 
 class CheckpointController extends Controller
 {
-    /**
-     * Menampilkan halaman scan saat QR Code dipindai.
-     * URL: /checkpoint/{slug}
-     */
-    public function show($slug)
+    public function show(Request $request, $slug)
     {
-        $checkpoint = Checkpoint::where('slug', $slug)->firstOrFail();
+        $checkpoint = \App\Models\Checkpoint::where('slug', $slug)->firstOrFail();
 
-        return Inertia::render('checkpoint/scan', [
-            'checkpoint' => $checkpoint,
+        if ($request->wantsJson()) {
+            return response()->json([
+                'checkpoint' => $checkpoint
+            ]);
+        }
+
+        return Inertia::render('Checkpoint/Show', [
+            'checkpoint' => $checkpoint
         ]);
     }
 
-    /**
-     * Memproses data scan dan mencatat log.
-     */
-    // PERBAIKAN DI SINI: Menambahkan GamificationService ke dalam parameter
     public function store(Request $request, GamificationService $gamificationService)
     {
         $request->validate([
@@ -75,7 +73,6 @@ class CheckpointController extends Controller
                 'completed_at' => now()
             ]);
             
-            // Sekarang variabel ini sudah dikenali lewat injection di atas
             $gamificationService->checkAndAwardBadges($hike);
             
             return Redirect::route('dashboard')->with('success', 'Hiking completed! Badge unlocked check your profile.');
