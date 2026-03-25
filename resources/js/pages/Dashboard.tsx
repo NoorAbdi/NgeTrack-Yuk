@@ -9,7 +9,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { useState, useEffect } from 'react';
 import { Activity, MapPin, Mountain, CheckCircle, Trophy, History, Camera, X } from 'lucide-react';
 import { Scanner } from '@yudiel/react-qr-scanner';
-import axios from 'axios';
+import axios from 'axios'; 
 
 interface CurrentHike {
     hike_registration_id: string;
@@ -37,8 +37,8 @@ interface HikeHistory {
 
 interface DashboardProps {
     currentHike?: CurrentHike | null;
-    badges: UserBadge[];
-    hikeHistory: HikeHistory[];
+    badges?: UserBadge[];
+    hikeHistory?: HikeHistory[];
 }
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -48,7 +48,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export default function Dashboard({ currentHike, badges, hikeHistory }: DashboardProps) {
+export default function Dashboard({ currentHike, badges = [], hikeHistory = [] }: DashboardProps) {
     const { flash } = usePage().props as any;
     const [showNewHikeModal, setShowNewHikeModal] = useState(false);
     const [activeTab, setActiveTab] = useState<'badges' | 'history'>('badges');
@@ -80,6 +80,8 @@ export default function Dashboard({ currentHike, badges, hikeHistory }: Dashboar
     };
 
     const submitCheckIn = () => {
+        if (!scannedCheckpoint?.id) return;
+        
         setIsCheckingIn(true);
         router.post('/checkpoint/scan', { checkpoint_id: scannedCheckpoint.id }, {
             preserveState: true,
@@ -91,13 +93,8 @@ export default function Dashboard({ currentHike, badges, hikeHistory }: Dashboar
         });
     };
 
-    const simulateScan = () => {
-        setScannedCheckpoint({
-            id: 1,
-            name: "Pos 1 - Main Gate",
-            subtitle: "Registration & Briefing Area"
-        });
-    };
+    const safeBadges = Array.isArray(badges) ? badges.filter(Boolean) : [];
+    const safeHistory = Array.isArray(hikeHistory) ? hikeHistory.filter(Boolean) : [];
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -160,16 +157,16 @@ export default function Dashboard({ currentHike, badges, hikeHistory }: Dashboar
                             </CardHeader>
                             <CardContent>
                                 <div className="text-2xl font-extrabold text-gray-900 dark:text-white">
-                                    {currentHike.status}
+                                    {currentHike?.status || 'Active'}
                                 </div>
                                 <div className="mt-1 flex items-center text-sm font-medium text-gray-600 dark:text-gray-400">
                                     <Mountain className="mr-1 h-4 w-4" />
-                                    {currentHike.mountain_name}
+                                    {currentHike?.mountain_name || 'Mount Papandayan'}
                                 </div>
                                 <div className="mt-3 p-2 bg-orange-50 dark:bg-orange-900/20 rounded-md border border-orange-100 dark:border-orange-900/50">
                                     <p className="text-[10px] font-bold text-orange-900 dark:text-orange-300 uppercase tracking-wider">Active ID</p>
                                     <p className="text-lg font-mono font-bold text-orange-950 dark:text-orange-100 leading-none mt-1">
-                                        {currentHike.hike_registration_id}
+                                        {currentHike?.hike_registration_id}
                                     </p>
                                 </div>
                             </CardContent>
@@ -192,11 +189,11 @@ export default function Dashboard({ currentHike, badges, hikeHistory }: Dashboar
                             </CardHeader>
                             <CardContent>
                                 <div className="text-xl font-extrabold text-gray-900 dark:text-white leading-tight">
-                                    {currentHike.last_checkpoint}
+                                    {currentHike?.last_checkpoint || '-'}
                                 </div>
                                 <div className="mt-4 flex items-center gap-2">
-                                    <span className={`px-3 py-1 text-xs rounded-full font-bold ${currentHike.direction === 'Ascent' ? 'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-200' : 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-200'}`}>
-                                        {currentHike.direction === '-' ? 'Not Started' : currentHike.direction}
+                                    <span className={`px-3 py-1 text-xs rounded-full font-bold ${currentHike?.direction === 'Ascent' ? 'bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-200' : 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-200'}`}>
+                                        {currentHike?.direction === '-' ? 'Not Started' : currentHike?.direction}
                                     </span>
                                 </div>
                             </CardContent>
@@ -235,15 +232,15 @@ export default function Dashboard({ currentHike, badges, hikeHistory }: Dashboar
                             
                             {activeTab === 'badges' && (
                                 <div className="p-4 space-y-3">
-                                    {badges.length > 0 ? (
-                                        badges.map((badge) => (
-                                            <div key={badge.id} className="flex items-center gap-3 p-3 rounded-xl bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-100 dark:border-yellow-900/30 transition-colors hover:bg-yellow-100/50 dark:hover:bg-yellow-900/30">
+                                    {safeBadges.length > 0 ? (
+                                        safeBadges.map((badge) => (
+                                            <div key={badge?.id} className="flex items-center gap-3 p-3 rounded-xl bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-100 dark:border-yellow-900/30 transition-colors hover:bg-yellow-100/50 dark:hover:bg-yellow-900/30">
                                                 <div className="h-10 w-10 rounded-full bg-yellow-100 flex items-center justify-center text-yellow-600 dark:bg-yellow-900/50 dark:text-yellow-400 shrink-0 shadow-sm">
                                                     <Trophy className="h-5 w-5" />
                                                 </div>
                                                 <div>
-                                                    <p className="text-sm font-bold text-gray-900 dark:text-white">{badge.name}</p>
-                                                    <p className="text-xs font-medium text-gray-600 dark:text-gray-400">{badge.unlocked_at}</p>
+                                                    <p className="text-sm font-bold text-gray-900 dark:text-white">{badge?.name}</p>
+                                                    <p className="text-xs font-medium text-gray-600 dark:text-gray-400">{badge?.unlocked_at}</p>
                                                 </div>
                                             </div>
                                         ))
@@ -251,7 +248,6 @@ export default function Dashboard({ currentHike, badges, hikeHistory }: Dashboar
                                         <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                                             <Trophy className="h-10 w-10 mx-auto mb-3 text-gray-300 dark:text-gray-600" />
                                             <p className="text-sm font-medium">No badges earned yet.</p>
-                                            <p className="text-xs mt-1">Start hiking to unlock them!</p>
                                         </div>
                                     )}
                                 </div>
@@ -259,24 +255,24 @@ export default function Dashboard({ currentHike, badges, hikeHistory }: Dashboar
 
                             {activeTab === 'history' && (
                                 <div>
-                                    {hikeHistory.length > 0 ? (
+                                    {safeHistory.length > 0 ? (
                                         <div className="divide-y divide-gray-100 dark:divide-gray-700/50">
-                                            {hikeHistory.map((hike) => (
-                                                <div key={hike.id} className="flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                                            {safeHistory.map((hike) => (
+                                                <div key={hike?.id} className="flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
                                                     <div className="flex items-center gap-3">
                                                         <div className="h-8 w-8 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-500 dark:text-gray-400">
                                                             <Mountain className="h-4 w-4" />
                                                         </div>
                                                         <div>
-                                                            <p className="text-sm font-bold text-gray-900 dark:text-white">{hike.mountain_name}</p>
-                                                            <p className="text-xs font-medium text-gray-600 dark:text-gray-400">{hike.completed_date}</p>
+                                                            <p className="text-sm font-bold text-gray-900 dark:text-white">{hike?.mountain_name}</p>
+                                                            <p className="text-xs font-medium text-gray-600 dark:text-gray-400">{hike?.completed_date}</p>
                                                         </div>
                                                     </div>
                                                     <div className="text-right">
                                                         <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-bold bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">
                                                             Completed
                                                         </span>
-                                                        <p className="text-[10px] font-medium text-gray-500 dark:text-gray-500 mt-1">{hike.duration}</p>
+                                                        <p className="text-[10px] font-medium text-gray-500 dark:text-gray-500 mt-1">{hike?.duration}</p>
                                                     </div>
                                                 </div>
                                             ))}
@@ -285,7 +281,6 @@ export default function Dashboard({ currentHike, badges, hikeHistory }: Dashboar
                                         <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                                             <History className="h-10 w-10 mx-auto mb-3 text-gray-300 dark:text-gray-600" />
                                             <p className="text-sm font-medium">No hiking history.</p>
-                                            <p className="text-xs mt-1">Your completed hikes will appear here.</p>
                                         </div>
                                     )}
                                 </div>
@@ -315,8 +310,6 @@ export default function Dashboard({ currentHike, badges, hikeHistory }: Dashboar
                                 Scan QR if you reach checkpoints to update your location.
                             </p>
                             
-                            <div className="w-full aspect-square md:aspect-video bg-gray-100 dark:bg-gray-900 rounded-xl overflow-hidden border-2 border-dashed border-gray-300 dark:border-gray-700 flex items-center justify-center relative cursor-pointer" onClick={simulateScan}>
-
                             <div className="w-full max-w-sm mx-auto overflow-hidden rounded-xl border-2 border-gray-200 dark:border-gray-700 shadow-inner">
                                 <Scanner 
                                     onScan={(result) => {
@@ -326,9 +319,6 @@ export default function Dashboard({ currentHike, badges, hikeHistory }: Dashboar
                                     }}
                                     onError={(error: any) => console.log(error?.message || error)}
                                 />
-                            </div>
-                                <div className="absolute inset-0 border-2 border-blue-500/50 m-8 rounded-lg animate-pulse pointer-events-none" />
-                                <span className="text-gray-500 dark:text-gray-500 font-medium">Click to Simulate Scan (Dev)</span>
                             </div>
                         </div>
                     )}
@@ -341,7 +331,7 @@ export default function Dashboard({ currentHike, badges, hikeHistory }: Dashboar
                                     <MapPin className="h-8 w-8 text-blue-600 dark:text-blue-400" />
                                 </div>
                                 <h2 className="text-2xl font-black text-gray-900 dark:text-white">
-                                    {scannedCheckpoint.name}
+                                    {scannedCheckpoint?.name}
                                 </h2>
                                 <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mt-1">
                                     Confirm your location update
