@@ -80,16 +80,22 @@ export default function Dashboard({ currentHike, badges = [], hikeHistory = [] }
     };
 
     const submitCheckIn = () => {
-        if (!scannedCheckpoint?.id) return;
-        
         setIsCheckingIn(true);
-        router.post('/checkpoint/scan', { checkpoint_id: scannedCheckpoint.id }, {
+        
+        router.post('/checkpoint/scan', { 
+            checkpoint_id: scannedCheckpoint.id,
+            hike_registration_id: currentHike?.hike_registration_id
+        }, {
             preserveState: true,
             onSuccess: () => {
                 setScannedCheckpoint(null); 
                 setIsCheckingIn(false);
             },
-            onError: () => setIsCheckingIn(false)
+            onError: (errors) => {
+                setIsCheckingIn(false);
+                console.error("Validation Errors:", errors);
+                alert(errors.hike_registration_id || errors.checkpoint_id || "Failed to check in. Please check your connection.");
+            }
         });
     };
 
