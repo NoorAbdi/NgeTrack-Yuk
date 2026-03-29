@@ -213,21 +213,43 @@ class ForestryDashboardController extends Controller
             'checkpoint_id' => 'required|exists:checkpoints,id',
         ]);
 
+        $currentCheckpoint = Checkpoint::findOrFail($request->checkpoint_id);
+        
+        $direction = 'ascent';
+
+        $lastLog = CheckpointLog::with('checkpoint')
+                    ->where('hike_id', $hike->id)
+                    ->latest('scanned_at')
+                    ->first();
+
+        if ($lastLog && $lastLog->checkpoint) {
+            if ($currentCheckpoint->order <= $lastLog->checkpoint->order) {
+                $direction = 'descent';
+            }
+        }
+
         CheckpointLog::create([
             'user_id' => $hike->user_id,
             'hike_id' => $hike->id,
             'checkpoint_id' => $request->checkpoint_id,
+            'direction' => $direction,
             'scanned_at' => now(),
         ]);
 
-        $checkpointName = Checkpoint::find($request->checkpoint_id)->name;
-        $note = "[" . now()->format('Y-m-d H:i') . "] MANUAL HT CHECK-IN at " . $checkpointName . " by " . auth()->user()->name;
+        $note = "[" . now()->format('Y-m-d H:i') . "] MANUAL HT CHECK-IN at " . $currentCheckpoint->name . " (" . strtoupper($direction) . ") by " . auth()->user()->name;
         
-        $hike->update([
+        $updateData = [
             'admin_notes' => $hike->admin_notes ? $hike->admin_notes . "\n" . $note : $note,
-        ]);
+        ];
 
-        return redirect()->back()->with('success', 'Manual Check-in via HT successful.');
+        if ($currentCheckpoint->order === 0 && $direction === 'descent') {
+            $updateData['status'] = 'completed';
+            $updateData['completed_at'] = now();
+        }
+
+        $hike->update($updateData);
+
+        return redirect()->back()->with('success', 'Manual Check-in via HT successful (' . ucfirst($direction) . ').');
     }
 
     public function createBooking()
