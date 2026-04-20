@@ -14,6 +14,7 @@ class CheckpointController extends Controller
     public function index()
     {
         $checkpoints = Checkpoint::with('mountain')
+                                ->withTrashed()
                                 ->orderBy('mountain_id')
                                 ->orderBy('order')
                                 ->get();
@@ -43,21 +44,22 @@ class CheckpointController extends Controller
         return Redirect::route('admin.checkpoints.index')->with('success', 'Checkpoint created successfully.');
     }
 
-    public function edit(Checkpoint $checkpoint)
+    public function edit($id)
     {
-        return Inertia::render('admin/checkpoints/edit', [
+        $checkpoint = Checkpoint::withTrashed()->findOrFail($id);
+
+        return Inertia::render('Admin/Checkpoints/Edit', [
             'checkpoint' => $checkpoint,
-            'mountains' => Mountain::all(),
         ]);
     }
 
-    public function update(Request $request, Checkpoint $checkpoint)
+    public function update(Request $request, $id)
     {
+        $checkpoint = Checkpoint::withTrashed()->findOrFail($id);
+
         $validated = $request->validate([
-            'mountain_id' => 'required|exists:mountains,id',
             'name' => 'required|string|max:255',
-            'slug' => 'required|string|max:255|unique:checkpoints,slug,' . $checkpoint->id,
-            'order' => 'required|integer'
+            'order' => 'required|integer',
         ]);
 
         $checkpoint->update($validated);
@@ -65,9 +67,16 @@ class CheckpointController extends Controller
         return Redirect::route('admin.checkpoints.index')->with('success', 'Checkpoint updated successfully.');
     }
 
-    public function destroy(Checkpoint $checkpoint)
+    public function destroy($id)
     {
+        $checkpoint = Checkpoint::withTrashed()->findOrFail($id);
+        
+        if ($checkpoint->trashed()) {
+            $checkpoint->forceDelete();
+            return Redirect::route('admin.checkpoints.index')->with('success', 'Checkpoint permanently deleted.');
+        }
+
         $checkpoint->delete();
-        return Redirect::route('admin.checkpoints.index')->with('success', 'Checkpoint deleted successfully.');
+        return Redirect::route('admin.checkpoints.index')->with('success', 'Checkpoint moved to trash.');
     }
 }

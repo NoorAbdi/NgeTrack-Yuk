@@ -4,7 +4,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\HikeRegistrationController;
-use App\Http\Controllers\Admin\CheckpointController as AdminCheckpointController;
+use App\Http\Controllers\Admin\CheckpointController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\ForestryOfficerController;
 use App\Http\Controllers\CheckpointController as PublicCheckpointController;
@@ -22,6 +22,11 @@ Route::get('/', function () {
     ]);
 })->name('home');
 
+Route::inertia('/learn-more', 'LearnMore')->name('learn.more');
+Route::inertia('/privacy-policy', 'PrivacyPolicy')->name('privacy.policy');
+Route::inertia('/terms-of-service', 'TermsOfService')->name('terms.of.service');
+Route::inertia('/contact-rangers', 'ContactRangers')->name('contact.rangers');
+
 Route::get('/dashboard', [HikerDashboardController::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
 Route::middleware('auth')->group(function () {
     Route::get('/register-hike', [HikeRegistrationController::class, 'create'])->name('hike.create');
@@ -36,6 +41,7 @@ Route::middleware(['auth', 'verified', 'is_admin'])->prefix('admin')->name('admi
     Route::post('/checkpoints', [AdminCheckpointController::class, 'store'])->name('checkpoints.store')->middleware('throttle:30,1');
     Route::put('/checkpoints/{checkpoint}', [AdminCheckpointController::class, 'update'])->name('checkpoints.update')->middleware('throttle:30,1');
     Route::delete('/checkpoints/{checkpoint}', [AdminCheckpointController::class, 'destroy'])->name('checkpoints.destroy')->middleware('throttle:20,1');
+    Route::resource('checkpoints', CheckpointController::class)->withTrashed();
     Route::resource('forestry-officers', ForestryOfficerController::class)->except(['show', 'edit', 'update']);
     Route::get('/alert-settings', [AdminAlertSettingController::class, 'edit'])->name('admin.alert-settings.edit');
     Route::put('/alert-settings', [AdminAlertSettingController::class, 'update'])->name('admin.alert-settings.update');

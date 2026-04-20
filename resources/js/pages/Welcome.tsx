@@ -1,7 +1,7 @@
 import { Link, Head, usePage } from '@inertiajs/react';
 import { type SharedData } from '@/types';
 import { Button } from '@/components/ui/button';
-import { ShieldCheck, MapPin, Smile } from 'lucide-react'; // Ikon untuk fitur
+import { ShieldCheck, MapPin, Smile } from 'lucide-react';
 
 export default function Welcome() {
     const { auth } = usePage<SharedData>().props;
@@ -73,7 +73,9 @@ export default function Welcome() {
                                     </Button>
                                 </Link>
                             )}
-                            <Link href="#features">
+                            
+                            {/* Diarahkan ke halaman Learn More yang baru kita buat */}
+                            <Link href="/learn-more">
                                 <Button variant="ghost" size="lg" className="w-full sm:w-auto">
                                     Learn More
                                 </Button>
@@ -122,10 +124,12 @@ export default function Welcome() {
                 <footer className="border-t border-gray-200 dark:border-neutral-800 mt-auto py-12 px-6 bg-white dark:bg-neutral-950">
                     <div className="mx-auto max-w-6xl flex flex-col md:flex-row justify-between items-center text-sm text-gray-500 dark:text-gray-400">
                         <p>&copy; {new Date().getFullYear()} NgeTrack-Yuk. All rights reserved.</p>
+                        
+                        {/* Menggunakan Inertia Link untuk transisi SPA yang instan */}
                         <div className="flex gap-6 mt-4 md:mt-0">
-                            <a href="#" className="hover:text-gray-900 dark:hover:text-white">Privacy Policy</a>
-                            <a href="#" className="hover:text-gray-900 dark:hover:text-white">Terms of Service</a>
-                            <a href="#" className="hover:text-gray-900 dark:hover:text-white">Contact Rangers</a>
+                            <Link href="/privacy-policy" className="hover:text-gray-900 dark:hover:text-white transition-colors">Privacy Policy</Link>
+                            <Link href="/terms-of-service" className="hover:text-gray-900 dark:hover:text-white transition-colors">Terms of Service</Link>
+                            <Link href="/contact-rangers" className="hover:text-gray-900 dark:hover:text-white transition-colors">Contact Rangers</Link>
                         </div>
                     </div>
                 </footer>

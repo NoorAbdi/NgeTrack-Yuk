@@ -13,17 +13,17 @@ return new class extends Migration
     {
         // 1. Menambahkan data kontak & darurat ke tabel 'users'
         Schema::table('users', function (Blueprint $table) {
-            $table->string('phone_number')->nullable()->after('email'); // Kontak Pendaki
-            $table->string('emergency_contact_name')->nullable()->after('phone_number'); // Nama Kontak Darurat
-            $table->string('emergency_contact_phone')->nullable()->after('emergency_contact_name'); // No HP Kontak Darurat
-            $table->text('address')->nullable()->after('emergency_contact_phone'); // Alamat (Opsional, tapi bagus untuk data personal)
+            $table->string('phone_number')->nullable()->after('email');
+            $table->text('emergency_contact_name')->nullable()->after('phone_number');
+            $table->text('emergency_contact_phone')->nullable()->after('emergency_contact_name');
+            $table->text('address')->nullable()->after('emergency_contact_phone');
         });
 
         // 2. Menambahkan detail jalur ke tabel 'mountains'
         Schema::table('mountains', function (Blueprint $table) {
             $table->enum('difficulty_level', ['easy', 'moderate', 'hard', 'expert'])->default('moderate')->after('location');
             $table->enum('status', ['open', 'closed', 'maintenance'])->default('open')->after('difficulty_level');
-            $table->integer('elevation')->nullable()->after('location'); // Ketinggian (mdpl) - Opsional tapi relevan
+            $table->integer('elevation')->nullable()->after('location');
         });
     }
 
